@@ -20,7 +20,8 @@ for r in sorted(rows, key=lambda r: -r["train_score"]):
 k = max(1, int(len(uniq) * a.top))
 keep = [r for r in uniq[:k] if r["train_score"] >= a.min_score]
 prompt = build_prompt()
-write_jsonl(a.out, [{"messages": [{"role": "user", "content": prompt},
-                                  {"role": "assistant", "content": "```redcode\n" + r["source"] + "```"}],
+# prompt-completion format: TRL trains on the completion (the warrior) only
+write_jsonl(a.out, [{"prompt": [{"role": "user", "content": prompt}],
+                     "completion": [{"role": "assistant", "content": "```redcode\n" + r["source"] + "```"}],
                      "train_score": r["train_score"]} for r in keep])
 print(f"{len(rows)} valid originals, {len(uniq)} unique, kept {len(keep)} (min score {keep[-1]['train_score']:.3f})" if keep else "nothing kept")
