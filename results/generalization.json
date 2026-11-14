@@ -1,0 +1,66 @@
+{
+ "A": {
+  "sparring": 0.375,
+  "hill": 0.396,
+  "drop": 0.021,
+  "imp_opp": 0.351,
+  "other_opp": 0.418,
+  "tie_rate": 0.239
+ },
+ "B": {
+  "sparring": 0.497,
+  "hill": 0.373,
+  "drop": -0.124,
+  "imp_opp": 0.322,
+  "other_opp": 0.399,
+  "tie_rate": 0.242
+ },
+ "C": {
+  "sparring": 0.456,
+  "hill": 0.396,
+  "drop": -0.06,
+  "imp_opp": 0.35,
+  "other_opp": 0.419,
+  "tie_rate": 0.263
+ },
+ "D2": {
+  "sparring": 0.583,
+  "hill": 0.462,
+  "drop": -0.12,
+  "imp_opp": 0.472,
+  "other_opp": 0.458,
+  "tie_rate": 0.165
+ },
+ "E2": {
+  "sparring": 0.418,
+  "hill": 0.397,
+  "drop": -0.021,
+  "imp_opp": 0.372,
+  "other_opp": 0.409,
+  "tie_rate": 0.583
+ },
+ "G (lessons)": {
+  "sparring": 0.43,
+  "hill": 0.387,
+  "drop": -0.043,
+  "imp_opp": 0.36,
+  "other_opp": 0.401,
+  "tie_rate": 0.314
+ },
+ "F (sonnet)": {
+  "sparring": 0.313,
+  "hill": 0.203,
+  "drop": -0.11,
+  "imp_opp": 0.13,
+  "other_opp": 0.239,
+  "tie_rate": 0.166
+ },
+ "reference": {
+  "sparring": 0.489,
+  "hill": 0.486,
+  "drop": -0.003,
+  "imp_opp": 0.449,
+  "other_opp": 0.504,
+  "tie_rate": 0.658
+ }
+}

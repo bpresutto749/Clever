@@ -1,0 +1,239 @@
+{
+ "reference": {
+  "rows": [
+   {
+    "file": "data/reference_toxic.red",
+    "length": 100,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.4856,
+    "reward": 1.0
+   }
+  ],
+  "summary": {
+   "n": 1,
+   "mean": 1.0,
+   "sd": null,
+   "ci95": null
+  }
+ },
+ "opus-5.5": {
+  "rows": [
+   {
+    "file": "runs/opus-5.5/run_A.red",
+    "length": 14,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.396,
+    "reward": 0.7265
+   },
+   {
+    "file": "runs/opus-5.5/run_B.red",
+    "length": 65,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3731,
+    "reward": 0.6566
+   },
+   {
+    "file": "runs/opus-5.5/run_C.red",
+    "length": 79,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3963,
+    "reward": 0.7275
+   },
+   {
+    "file": "runs/opus-5.5/run_D2.red",
+    "length": 65,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.4624,
+    "reward": 0.9294
+   },
+   {
+    "file": "runs/opus-5.5/run_E2.red",
+    "length": 12,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3967,
+    "reward": 0.7285
+   }
+  ],
+  "summary": {
+   "n": 5,
+   "mean": 0.7537,
+   "sd": 0.1029,
+   "ci95": [
+    0.6258,
+    0.8816
+   ]
+  }
+ },
+ "opus-5.5-lessons": {
+  "rows": [
+   {
+    "file": "runs/opus-5.5-lessons/run_G.red",
+    "length": 40,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3872,
+    "reward": 0.6997
+   }
+  ],
+  "summary": {
+   "n": 1,
+   "mean": 0.6997,
+   "sd": null,
+   "ci95": null
+  }
+ },
+ "sonnet-5.5": {
+  "rows": [
+   {
+    "file": "runs/sonnet-5.5/run_F.red",
+    "length": 5,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.2028,
+    "reward": 0.1364
+   }
+  ],
+  "summary": {
+   "n": 1,
+   "mean": 0.1364,
+   "sd": null,
+   "ci95": null
+  }
+ },
+ "codeclash-ladder-2026-07": {
+  "rows": [
+   {
+    "file": "runs/codeclash-ladder-2026-07/gemini-3-5-flash.red",
+    "length": 12,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3388,
+    "reward": 0.5517
+   },
+   {
+    "file": "runs/codeclash-ladder-2026-07/gpt-5-5.red",
+    "length": 11,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3357,
+    "reward": 0.5422
+   },
+   {
+    "file": "runs/codeclash-ladder-2026-07/opus-4-8.red",
+    "length": 18,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.1401,
+    "reward": 0.0
+   },
+   {
+    "file": "runs/codeclash-ladder-2026-07/sonnet-5.red",
+    "length": 48,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.0771,
+    "reward": 0.0
+   }
+  ],
+  "summary": {
+   "n": 4,
+   "mean": 0.2735,
+   "sd": 0.3158,
+   "ci95": [
+    -0.2287,
+    0.7756
+   ]
+  }
+ },
+ "baselines": {
+  "rows": [
+   {
+    "file": "baselines/decoy_100.red",
+    "length": 100,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.0,
+    "reward": 0.0
+   },
+   {
+    "file": "baselines/dwarf.red",
+    "length": 4,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.142,
+    "reward": 0.0
+   },
+   {
+    "file": "baselines/imp.red",
+    "length": 1,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.1581,
+    "reward": 0.0
+   },
+   {
+    "file": "baselines/loop_jmp.red",
+    "length": 1,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.0172,
+    "reward": 0.0
+   },
+   {
+    "file": "baselines/nothing_dat.red",
+    "length": 1,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.0,
+    "reward": 0.0
+   },
+   {
+    "file": "baselines/scanner_basic.red",
+    "length": 8,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.0686,
+    "reward": 0.0
+   },
+   {
+    "file": "baselines/silk_paper.red",
+    "length": 8,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.16,
+    "reward": 0.0058
+   },
+   {
+    "file": "baselines/spl_flood.red",
+    "length": 2,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.014,
+    "reward": 0.0
+   },
+   {
+    "file": "baselines/stone_spl.red",
+    "length": 5,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.2284,
+    "reward": 0.2148
+   }
+  ],
+  "summary": {
+   "n": 9,
+   "mean": 0.0245,
+   "sd": 0.0714,
+   "ci95": [
+    -0.0305,
+    0.0795
+   ]
+  }
+ }
+}

@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""Generate the Harbor task directory harbor/corewar-hill from the sources in this repo.
+
+Single source of truth: arena/ (rules engine), pmars/ (simulator source),
+data/ (sparring pool, hidden hill, corpus, reference), task_src/ (instruction,
+verifier, local battle tool). Rerun after any change: `make task`.
+"""
+import shutil
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT / "harbor" / "corewar-hill"
+
+PMARS_SRC = [p for p in (ROOT / "pmars").iterdir()
+             if p.suffix in (".c", ".h") or p.name in ("Makefile", "COPYING", "AUTHORS", "README.pmars")]
+
+TASK_TOML = """schema_version = "1.4"
+artifacts = [
+  { source = "/results/submission.red", service = "arena", destination = "submission.red" },
+  { source = "/results/events.jsonl", service = "arena", destination = "events.jsonl" },
+  { source = "/app/submission.red", destination = "app_submission.red" },
+]
+
+[task]
+name = "junction-afterquery/corewar-hill"
+version = "1.0.0"
+description = "Write an original Redcode warrior that holds its own against a hidden hill of 30 human-written King-of-the-Hill warriors."
+keywords = ["core-war", "redcode", "adversarial-program-synthesis", "generalization", "open-ended-search"]
+
+[metadata]
+category = "adversarial program synthesis"
+difficulty_explanation = "Frontier agents write working scanners but tune them against the 10 visible sparring warriors, overfit, and stop early; a human expert warrior generalizes. Scores are deterministic (pMARS fixed position series)."
+reference = "Toxic by John Metcalf, #1 of 264 human warriors on the CodeClash CC:Ladder Elo ranking (chosen before any agent run)"
+reference_hill_score = 0.486
+
+[verifier]
+timeout_sec = 900.0
+environment_mode = "separate"
+network_mode = "no-network"
+
+[agent]
+timeout_sec = 2700.0
+
+[environment]
+cpus = 2
+memory_mb = 4096
+network_mode = "public"
+build_timeout_sec = 900.0
+os = "linux"
+
+[[environment.mcp_servers]]
+name = "corewar"
+transport = "streamable-http"
+url = "http://arena:8000/mcp"
+"""
+
+COMPOSE = """services:
+  main:
+    depends_on:
+      arena:
+        condition: service_healthy
+  arena:
+    build:
+      context: ./arena
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8000"
+      RESULTS_DIR: /results
+      ARENA_DATA: /srv/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+"""
+
+MAIN_DOCKERFILE = """FROM python:3.12-slim
+# Agent workspace: the scoring simulator, the language reference, the public
+# sparring pool and a local battle tool. The hidden hill is not in this image.
+RUN apt-get update && apt-get install -y --no-install-recommends gcc make libc6-dev \\
+    && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir mcp==1.30.0
+COPY arena/pmars /opt/pmars-src
+RUN make -C /opt/pmars-src pmars && mkdir -p /app/bin && cp /opt/pmars-src/pmars /app/bin/pmars && rm -rf /opt/pmars-src
+COPY arena/data/sparring /app/sparring
+COPY doc /app/doc
+COPY battle.py /app/tools/battle.py
+RUN touch /app/submission.red
+WORKDIR /app
+"""
+
+ARENA_DOCKERFILE = """FROM python:3.12-slim
+RUN apt-get update && apt-get install -y --no-install-recommends gcc make libc6-dev \\
+    && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir mcp==1.30.0
+COPY pmars /srv/pmars
+RUN make -C /srv/pmars pmars
+COPY arena /srv/arena
+COPY data /srv/data
+ENV PYTHONPATH=/srv
+RUN mkdir -p /results && touch /results/submission.red /results/events.jsonl
+EXPOSE 8000
+CMD ["python", "-m", "arena.mcp_server"]
+"""
+
+TESTS_DOCKERFILE = """FROM python:3.12-slim
+RUN apt-get update && apt-get install -y --no-install-recommends gcc make libc6-dev \\
+    && rm -rf /var/lib/apt/lists/*
+COPY . /tests/
+RUN make -C /tests/pmars pmars
+WORKDIR /tests
+"""
+
+TEST_SH = """#!/bin/bash
+# Scores the submission on the hidden hill (see verify.py). Always writes
+# /logs/verifier/reward.json.
+set -uo pipefail
+if [ ! -x /tests/pmars/pmars ]; then make -C /tests/pmars pmars >/dev/null 2>&1; fi
+python3 /tests/verify.py
+"""
+
+SOLVE_SH = """#!/bin/bash
+# Reference run: the human expert warrior Toxic (John Metcalf), the #1 warrior
+# of the CodeClash CC:Ladder Elo ranking of 264 human warriors. It was fixed as
+# the reference before any agent run. Submitted through the same MCP tool as an
+# agent would, with /app/submission.red as a fallback.
+set -e
+cp /solution/reference.red /app/submission.red
+python3 /solution/submit.py /solution/reference.red || echo "MCP submit failed; /app/submission.red will be scored"
+"""
+
+SUBMIT_PY = """import asyncio, sys
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+
+
+async def main(path, url="http://arena:8000/mcp"):
+    src = open(path).read()
+    async with streamablehttp_client(url) as (r, w, _):
+        async with ClientSession(r, w) as s:
+            await s.initialize()
+            res = await s.call_tool("submit", {"source": src})
+            print(res.content[0].text)
+
+asyncio.run(main(*sys.argv[1:]))
+"""
+
+
+def copy_pmars(dst):
+    dst.mkdir(parents=True, exist_ok=True)
+    for p in PMARS_SRC:
+        shutil.copy(p, dst / p.name)
+
+
+def main():
+    if OUT.exists():
+        shutil.rmtree(OUT)
+    env = OUT / "environment"
+    arena_ctx = env / "arena"
+    # sidecar build context
+    copy_pmars(arena_ctx / "pmars")
+    (arena_ctx / "arena").mkdir(parents=True)
+    for f in ("__init__.py", "core.py", "mcp_server.py", "RULES.md"):
+        shutil.copy(ROOT / "arena" / f, arena_ctx / "arena" / f)
+    shutil.copytree(ROOT / "data" / "sparring", arena_ctx / "data" / "sparring")
+    (arena_ctx / "Dockerfile").write_text(ARENA_DOCKERFILE)
+    # main container
+    (env / "Dockerfile").write_text(MAIN_DOCKERFILE)
+    (env / "docker-compose.yaml").write_text(COMPOSE)
+    shutil.copytree(ROOT / "doc", env / "doc")
+    shutil.copy(ROOT / "task_src" / "battle_local.py", env / "battle.py")
+    # task files
+    (OUT / "task.toml").write_text(TASK_TOML)
+    shutil.copy(ROOT / "task_src" / "instruction.md", OUT / "instruction.md")
+    # verifier: hidden hill + corpus live only here
+    tests = OUT / "tests"
+    copy_pmars(tests / "pmars")
+    (tests / "arena").mkdir(parents=True)
+    for f in ("__init__.py", "core.py"):
+        shutil.copy(ROOT / "arena" / f, tests / "arena" / f)
+    for sub in ("hill", "sparring", "corpus"):
+        shutil.copytree(ROOT / "data" / sub, tests / "data" / sub)
+    shutil.copy(ROOT / "task_src" / "verify.py", tests / "verify.py")
+    (tests / "test.sh").write_text(TEST_SH)
+    (tests / "Dockerfile").write_text(TESTS_DOCKERFILE)
+    # reference solution
+    sol = OUT / "solution"
+    sol.mkdir()
+    shutil.copy(ROOT / "data" / "reference_toxic.red", sol / "reference.red")
+    (sol / "solve.sh").write_text(SOLVE_SH)
+    (sol / "submit.py").write_text(SUBMIT_PY)
+    for p in (tests / "test.sh", sol / "solve.sh"):
+        p.chmod(0o755)
+    print("wrote", OUT)
+
+
+if __name__ == "__main__":
+    main()
