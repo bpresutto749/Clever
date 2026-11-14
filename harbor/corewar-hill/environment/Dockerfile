@@ -9,6 +9,6 @@ RUN make -C /opt/pmars-src pmars && mkdir -p /app/bin && cp /opt/pmars-src/pmars
 COPY doc /app/doc
 COPY battle.py /app/tools/battle.py
 COPY spar.py /app/tools/spar.py
-ENV COREWAR_MCP_URL=http://arena:8000/mcp
+ENV COREWAR_MCP_URL=http://localhost:8000/mcp
 RUN touch /app/submission.red
 WORKDIR /app

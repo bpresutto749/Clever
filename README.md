@@ -63,7 +63,7 @@ that faces hidden adversaries: exploits, defences, bidding agents, fuzzed servic
 │ /app/bin/pmars   /app/doc (+ strategy primer)   │────▶│ battle  battle_custom           │
 │ /app/tools/spar.py  /app/tools/battle.py        │     │ submit (last accepted counts)   │
 │ /app/submission.red (fallback)                  │     │ status   → /results/*           │
-└──────── network: allowlist (arena + model APIs) ┘     │ 10 sparring warriors, black box │
+└──── network: allowlist (model APIs only) ──────┘     │ 10 sparring warriors, black box │
                                                          └──────────────┬──────────────────┘
           artifacts (re-created at their source paths in the verifier): │
           /results/submission.red, events.jsonl, history/, /app/submission.red
@@ -98,6 +98,7 @@ make task lint   # regenerate harbor/corewar-hill from sources and lint it
 make harbor-reference              # oracle: submits the reference through the MCP server
 make harbor-nop                    # do-nothing
 make harbor-agent MODEL=<provider/model>   # 3 OpenCode runs; add --allow-agent-host if your endpoint is unusual
+# Docker host without Harbor egress control: append TASK=harbor/corewar-hill-public (public agent network)
 ```
 
 **Requirements.** Everything except the Harbor runs needs only Python 3.10+, `mcp==1.30.0`

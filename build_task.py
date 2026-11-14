@@ -9,12 +9,13 @@ import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-OUT = ROOT / "harbor" / "corewar-hill"
+HARBOR = ROOT / "harbor"
 
 PMARS_SRC = [p for p in (ROOT / "pmars").iterdir()
              if p.suffix in (".c", ".h") or p.name in ("Makefile", "COPYING", "AUTHORS", "README.pmars")]
 
 TASK_TOML = """schema_version = "1.4"
+# variant: {variant}
 artifacts = [
   { source = "/results/submission.red", service = "arena", destination = "submission.red" },
   { source = "/results/events.jsonl", service = "arena", destination = "events.jsonl" },
@@ -41,18 +42,7 @@ network_mode = "no-network"
 
 [agent]
 timeout_sec = 2700.0
-# Agent phase: only the MCP sidecar and common model APIs are reachable, so an
-# agent cannot download published warriors. If your model endpoint is not listed,
-# add it at run time: harbor run ... --allow-agent-host <your.host>
-network_mode = "allowlist"
-allowed_hosts = [
-  "arena",
-  "api.anthropic.com", "api.openai.com", "*.openai.azure.com", "openrouter.ai",
-  "generativelanguage.googleapis.com", "*.googleapis.com", "*.amazonaws.com",
-  "api.mistral.ai", "api.deepseek.com", "api.x.ai", "api.together.xyz",
-  "api.fireworks.ai", "api.groq.com", "api.moonshot.ai", "api.z.ai",
-]
-
+{agent_network}
 [environment]
 cpus = 2
 memory_mb = 4096
@@ -63,8 +53,39 @@ os = "linux"
 [[environment.mcp_servers]]
 name = "corewar"
 transport = "streamable-http"
-url = "http://arena:8000/mcp"
+url = "{mcp_url}"
+
+[environment.healthcheck]
+command = "python3 -c \\"import urllib.request; urllib.request.urlopen('{health_url}', timeout=3)\\""
+interval_sec = 2.0
+start_period_sec = 60.0
+start_interval_sec = 2.0
+retries = 3
 """
+
+AGENT_NET_ALLOWLIST = """# Agent phase: only common model APIs are reachable (the MCP sidecar shares the
+# agent's network namespace under Harbor's egress control and is reached on
+# localhost), so an agent cannot download published warriors. If your model
+# endpoint is not listed, add it at run time: harbor run ... --allow-agent-host <host>
+network_mode = "allowlist"
+allowed_hosts = [
+  "api.anthropic.com", "api.openai.com", "*.openai.azure.com", "openrouter.ai",
+  "generativelanguage.googleapis.com", "*.googleapis.com", "*.amazonaws.com",
+  "api.mistral.ai", "api.deepseek.com", "api.x.ai", "api.together.xyz",
+  "api.fireworks.ai", "api.groq.com", "api.moonshot.ai", "api.z.ai",
+]
+"""
+
+AGENT_NET_PUBLIC = """# Public-network variant, for Docker hosts where Harbor's egress control is
+# unavailable. The agent could download published warriors here: see EXPLOITS.md.
+network_mode = "public"
+"""
+
+VARIANTS = {
+    # name: (agent network block, MCP URL seen from the agent container)
+    "corewar-hill": (AGENT_NET_ALLOWLIST, "http://localhost:8000/mcp"),
+    "corewar-hill-public": (AGENT_NET_PUBLIC, "http://arena:8000/mcp"),
+}
 
 COMPOSE = """services:
   main:
@@ -97,7 +118,7 @@ RUN make -C /opt/pmars-src pmars && mkdir -p /app/bin && cp /opt/pmars-src/pmars
 COPY doc /app/doc
 COPY battle.py /app/tools/battle.py
 COPY spar.py /app/tools/spar.py
-ENV COREWAR_MCP_URL=http://arena:8000/mcp
+ENV COREWAR_MCP_URL={mcp_url}
 RUN touch /app/submission.red
 WORKDIR /app
 """
@@ -148,7 +169,10 @@ from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
 
-async def main(path, url="http://arena:8000/mcp"):
+import os
+
+
+async def main(path, url=os.environ.get("COREWAR_MCP_URL", "http://localhost:8000/mcp")):
     src = open(path).read()
     async with streamablehttp_client(url) as (r, w, _):
         async with ClientSession(r, w) as s:
@@ -166,7 +190,7 @@ def copy_pmars(dst):
         shutil.copy(p, dst / p.name)
 
 
-def main():
+def build(OUT, agent_network, mcp_url):
     if OUT.exists():
         shutil.rmtree(OUT)
     env = OUT / "environment"
@@ -179,13 +203,15 @@ def main():
     shutil.copytree(ROOT / "data" / "sparring", arena_ctx / "data" / "sparring")
     (arena_ctx / "Dockerfile").write_text(ARENA_DOCKERFILE)
     # main container
-    (env / "Dockerfile").write_text(MAIN_DOCKERFILE)
+    (env / "Dockerfile").write_text(MAIN_DOCKERFILE.replace("{mcp_url}", mcp_url))
     (env / "docker-compose.yaml").write_text(COMPOSE)
     shutil.copytree(ROOT / "doc", env / "doc")
     shutil.copy(ROOT / "task_src" / "battle_local.py", env / "battle.py")
     shutil.copy(ROOT / "task_src" / "spar.py", env / "spar.py")
     # task files
-    (OUT / "task.toml").write_text(TASK_TOML)
+    health = mcp_url.replace("/mcp", "/health")
+    (OUT / "task.toml").write_text(TASK_TOML.replace("{variant}", OUT.name).replace("{agent_network}", agent_network)
+                                   .replace("{mcp_url}", mcp_url).replace("{health_url}", health))
     shutil.copy(ROOT / "task_src" / "instruction.md", OUT / "instruction.md")
     # verifier: hidden hill + corpus live only here
     tests = OUT / "tests"
@@ -207,6 +233,11 @@ def main():
     for p in (tests / "test.sh", sol / "solve.sh"):
         p.chmod(0o755)
     print("wrote", OUT)
+
+
+def main():
+    for name, (net, url) in VARIANTS.items():
+        build(HARBOR / name, net, url)
 
 
 if __name__ == "__main__":

@@ -67,7 +67,9 @@ def test_task_keeps_hill_and_sparring_source_out_of_the_agent_image():
     assert "sparring" not in dockerfile.replace("sparring warriors' source", "")
     assert (task / "tests" / "data" / "hill").exists()
     toml = (task / "task.toml").read_text()
-    assert 'network_mode = "allowlist"' in toml and '"arena"' in toml
+    assert 'network_mode = "allowlist"' in toml and 'url = "http://localhost:8000/mcp"' in toml
+    pub = (ROOT / "harbor" / "corewar-hill-public" / "task.toml").read_text()
+    assert 'network_mode = "public"' in pub and 'url = "http://arena:8000/mcp"' in pub
 
 
 def test_assembly_uses_the_battle_context():
