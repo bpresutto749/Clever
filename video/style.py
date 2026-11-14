@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Shared drawing helpers for both videos: palette, fonts, easing, panels, the judging-criteria rail,
-the animated memory background, and render() (frames piped to ffmpeg, one mp4 per scene)."""
+"""Shared drawing helpers for all the videos: palette, fonts, easing, anti-aliased shapes, panels,
+the judging-criteria rail, the animated memory background, and render() (frames piped to ffmpeg,
+one mp4 per scene)."""
 import math, os, subprocess, sys
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 W, H, FPS = 1920, 1080, 30
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))          # repository root
@@ -25,6 +26,119 @@ def ramp(t, t0, dur=0.5): return ease((t - t0) / dur)
 def mix(c, a): return tuple(int(v) for v in c) + (int(255 * clamp(a)),)
 def fade(t, dur, fin=0.35, fout=0.35): return clamp(min(t / fin, (dur - t) / fout))
 def text(d, xy, s, font, fill, a=1.0, anchor="la"): d.text(xy, s, font=font, fill=mix(fill, a), anchor=anchor)
+
+# ---------------------------------------------------------------- anti-aliased shapes
+# Pillow anti-aliases text but not shapes. ImageDraw.Draw is replaced below by a drawer whose ellipses,
+# rounded rectangles, polygons and slanted lines come from 4x supersampled masks (cached by geometry),
+# so circles, arrows and chart lines have smooth edges. Axis-aligned lines and rectangles are unchanged.
+# The same drawer makes text honour its alpha, so that text fades in and out with the shapes around it.
+SS = 4
+_MASKS = {}
+_LUT = [[v * a // 255 for v in range(256)] for a in range(256)]
+
+def _cached(key, build):
+    m = _MASKS.get(key)
+    if m is None:
+        if len(_MASKS) > 3000: _MASKS.clear()
+        m = _MASKS[key] = build()
+    return m
+
+def _ss(key, w, h, paint):
+    def build():
+        big = Image.new("L", (w * SS, h * SS), 0)
+        paint(ImageDraw.ImageDraw(big))
+        return big.reduce(SS)
+    return _cached(key, build)
+
+def _box(xy):
+    if len(xy) == 2: (x0, y0), (x1, y1) = xy
+    else: x0, y0, x1, y1 = xy
+    X0, Y0 = round(x0), round(y0)
+    return X0, Y0, round(x1) - X0 + 1, round(y1) - Y0 + 1
+
+def _pts(xy):
+    xy = list(xy)
+    return [tuple(p) for p in xy] if isinstance(xy[0], (tuple, list)) else list(zip(xy[0::2], xy[1::2]))
+
+def _rr(w, h, r):
+    def build():
+        m = Image.new("L", (w, h), 255)
+        if r > 0:
+            c = _ss(("c", r), 2 * r, 2 * r, lambda g: g.ellipse((0, 0, 2 * r * SS - 1, 2 * r * SS - 1), fill=255))
+            for sx, dx in ((0, 0), (r, w - r)):
+                for sy, dy in ((0, 0), (r, h - r)):
+                    m.paste(c.crop((sx, sy, sx + r, sy + r)), (dx, dy))
+        return m
+    return _cached(("rr", w, h, r), build)
+
+def _rr_ring(w, h, r, width):
+    def build():
+        outer = _rr(w, h, r)
+        if w <= 2 * width or h <= 2 * width: return outer
+        inner = Image.new("L", (w, h), 0)
+        inner.paste(_rr(w - 2 * width, h - 2 * width, max(0, r - width)), (width, width))
+        return ImageChops.subtract(outer, inner)
+    return _cached(("ring", w, h, r, width), build)
+
+class AADraw(ImageDraw.ImageDraw):
+    def __init__(self, im, mode=None):
+        super().__init__(im, mode); self._target = im
+
+    def _put(self, m, x, y, color):
+        a = color[3] if len(color) > 3 else 255
+        if a <= 0: return
+        if a < 255: m = m.point(_LUT[a])
+        self._target.paste(tuple(color[:3]), (x, y), m)
+
+    def text(self, xy, text, fill=None, font=None, anchor=None, **kw):
+        # Pillow draws text opaque whatever the fill's alpha, so a fading text is drawn as a mask
+        # and pasted through it like the shapes.
+        a = fill[3] if fill is not None and len(fill) > 3 else 255
+        if a >= 255: return super().text(xy, text, fill=fill, font=font, anchor=anchor, **kw)
+        if a <= 0: return
+        x0, y0, x1, y1 = self.textbbox(xy, text, font=font, anchor=anchor, **kw)
+        X0, Y0 = math.floor(x0) - 2, math.floor(y0) - 2
+        m = Image.new("L", (math.ceil(x1) - X0 + 3, math.ceil(y1) - Y0 + 3), 0)
+        ImageDraw.ImageDraw(m).text((xy[0] - X0, xy[1] - Y0), text, fill=255, font=font, anchor=anchor, **kw)
+        self._put(m, X0, Y0, fill)
+
+    def ellipse(self, xy, fill=None, outline=None, width=1):
+        x, y, w, h = _box(xy)
+        if w < 1 or h < 1: return
+        full = (0, 0, w * SS - 1, h * SS - 1)
+        if fill is not None:
+            self._put(_ss(("e", w, h), w, h, lambda g: g.ellipse(full, fill=255)), x, y, fill)
+        if outline is not None and width > 0:
+            self._put(_ss(("eo", w, h, width), w, h, lambda g: g.ellipse(full, outline=255, width=width * SS)), x, y, outline)
+
+    def rounded_rectangle(self, xy, radius=0, fill=None, outline=None, width=1, **kw):
+        x, y, w, h = _box(xy)
+        if w < 1 or h < 1: return
+        r = int(min(radius, w // 2, h // 2))
+        if fill is not None: self._put(_rr(w, h, r), x, y, fill)
+        if outline is not None and width > 0: self._put(_rr_ring(w, h, r, width), x, y, outline)
+
+    def _shape(self, kind, pts, pad, fill, paint):
+        X0 = math.floor(min(p[0] for p in pts)) - pad; Y0 = math.floor(min(p[1] for p in pts)) - pad
+        w = math.ceil(max(p[0] for p in pts)) + pad - X0 + 1; h = math.ceil(max(p[1] for p in pts)) + pad - Y0 + 1
+        loc = tuple((round((px - X0) * SS), round((py - Y0) * SS)) for px, py in pts)
+        self._put(_ss((kind, loc, pad), w, h, lambda g: paint(g, loc)), X0, Y0, fill)
+
+    def polygon(self, xy, fill=None, outline=None, width=1):
+        if fill is not None: self._shape("p", _pts(xy), 1, fill, lambda g, loc: g.polygon(loc, fill=255))
+
+    def line(self, xy, fill=None, width=0, joint=None):
+        pts = _pts(xy)
+        if fill is None or len(pts) < 2: return
+        if all(abs(a[0] - b[0]) < 1e-6 or abs(a[1] - b[1]) < 1e-6 for a, b in zip(pts, pts[1:])):
+            return super().line([(round(px), round(py)) for px, py in pts], fill=fill, width=width, joint=joint)
+        width = max(1, int(width)); rr = width * SS / 2
+        def paint(g, loc):
+            g.line(loc, fill=255, width=width * SS, joint="curve")
+            for cx, cy in (loc[0], loc[-1]): g.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), fill=255)   # round caps
+        self._shape("l", pts, width, fill, paint)
+
+ImageDraw.Draw = lambda im, mode=None: AADraw(im, mode)
 
 # ---------------------------------------------------------------- light core-memory animation
 COLS, ROWS, CELL = 96, 54, 20
@@ -101,9 +215,10 @@ def arrow(d, p, q, c, a, width=6, head=24, shrink=0):
     ang = math.atan2(y1 - y0, x1 - x0)
     x0 += math.cos(ang) * shrink; y0 += math.sin(ang) * shrink
     x1 -= math.cos(ang) * shrink; y1 -= math.sin(ang) * shrink
-    d.line((x0, y0, x1, y1), fill=mix(c, a), width=width)
-    for s in (+1, -1):
-        d.line((x1, y1, x1 - head * math.cos(ang + s * 0.45), y1 - head * math.sin(ang + s * 0.45)), fill=mix(c, a), width=width)
+    co, si = math.cos(ang), math.sin(ang)
+    bx, by, hw = x1 - head * co, y1 - head * si, head * 0.52        # base and half-width of the head
+    d.line((x0, y0, bx, by), fill=mix(c, a), width=width)
+    d.polygon([(x1, y1), (bx - si * hw, by + co * hw), (bx + si * hw, by - co * hw)], fill=mix(c, a))
 
 def hbar(d, t, x0, x1, y, h, v, c, t0, label, val, lab_font=34, val_font=38, lab_col=FG):
     a = ramp(t, t0); g = ramp(t, t0 + 0.2, 1.1)
@@ -121,8 +236,8 @@ DWARF = [("start  add.ab #4, bmb", "move 4 cells ahead"), ("       mov.i  bmb, @
 def render(name, fn, dur):
     tmp = os.path.join(OUT, f"{name}.tmp.mp4"); dst = os.path.join(OUT, f"{name}.mp4")
     p = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
-                          "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast",
-                          "-crf", "18", "-pix_fmt", "yuv420p", tmp], stdin=subprocess.PIPE)
+                          "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium",
+                          "-crf", "16", "-pix_fmt", "yuv420p", tmp], stdin=subprocess.PIPE)
     for i in range(int(round(dur * FPS))):
         p.stdin.write(fn(i / FPS, dur).convert("RGB").tobytes())
     p.stdin.close()

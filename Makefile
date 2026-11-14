@@ -73,7 +73,10 @@ clean:
 	$(MAKE) -C pmars clean
 	rm -rf harbor
 
-# The presentation and demo videos (video/README.md): every scene, then joined into media/
+# The videos (video/README.md): the drawing simulator is checked against pMARS, the two main videos are
+# checked for text out of frame, overlapping or shown too briefly, then every scene is drawn and joined
 videos: pmars
 	$(PY) video/check_mars.py
+	$(PY) video/audit.py pitch 4.0
+	$(PY) video/audit.py demo_full 5.5
 	$(PY) video/build.py all

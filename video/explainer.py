@@ -119,9 +119,9 @@ def bridge(question, active, sub=None):
         return img
     return scene
 
-def s_tests(t, dur):
+def s_tests(t, dur, kicker="3 · WHY IT WORKS"):
     img, d, k = base(t, dur, {"diff"})
-    head(d, t, "3 · WHY IT WORKS", "It tests what real engineers do", k)
+    head(d, t, kicker, "It tests what real engineers do", k)
     for i, s in enumerate(["Write code that works", "Test it well", "Prepare for opponents it cannot see", "Combine ideas, not polish one"]):
         a = ramp(t, 0.8 + i * 1.1, 0.6) * k
         tick(d, 130, 330 + i * 115, a)
@@ -130,9 +130,9 @@ def s_tests(t, dur):
         text(d, (120, 860), "Like security code, or trading bots: software facing an opponent.", F("Inter-Medium.otf", 34), MUTED, ramp(t, 6.0, 0.8) * k)
     return img
 
-def s_space(t, dur):
+def s_space(t, dur, kicker="3 · WHY IT WORKS"):
     img, d, k = base(t, dur, {"diff"})
-    head(d, t, "3 · WHY IT WORKS", "Can't the AI just try everything?", k)
+    head(d, t, kicker, "Can't the AI just try everything?", k)
     a = ramp(t, 0.8, 0.8) * k
     f = F("InterDisplay-Black.otf", 200)
     w = d.textlength("10", font=f) + 8 + d.textlength("140", font=F("InterDisplay-Black.otf", 96))
@@ -147,9 +147,9 @@ def s_space(t, dur):
         text(d, (W / 2, 870), "A whole AI run tries at most a few hundred programs.", F("Inter-Medium.otf", 32), MUTED, ramp(t, 5.4, 0.7) * k, "mm")
     return img
 
-def s_design(t, dur):
+def s_design(t, dur, kicker="3 · WHY IT WORKS"):
     img, d, k = base(t, dur, {"diff"})
-    head(d, t, "3 · WHY IT WORKS", "Running games is free. Good ideas are not.", k)
+    head(d, t, kicker, "Running games is free. Good ideas are not.", k)
     pts = [("Practice is not the exam.", "It trains on 30 opponents, but 30 secret ones grade it."),
            ("No move is safe.", "Beating one opponent can mean losing to another.")]
     for i, (h, s) in enumerate(pts):
@@ -165,34 +165,43 @@ def s_design(t, dur):
     return img
 
 # ---------------------------------------------------------------- findings
-def s_result(t, dur):
-    img, d, k = base(t, dur, {"gap"})
-    head(d, t, "4 · WHAT WE FOUND", "The AI falls short of the human expert", k)
-    x0, x1 = 760, 1680
-    a = ramp(t, 0.4) * k
-    text(d, (x0, 322), "score:  0 = Dwarf, the textbook beginner's program", F("Inter-Medium.otf", 24), MUTED, a, "ls")
-    text(d, (x1, 322), "1 = human expert", F("Inter-Medium.otf", 24), MUTED, a, "rs")
-    hbar(d, t, x0, x1, 345, 56, 0.0, DIM, 0.6, "Doing nothing", lambda g: "0.000", lab_col=MUTED)
-    hbar(d, t, x0, x1, 620, 56, 1.0, GREEN, 1.6, "Human expert program", lambda g: f"{1.0 * g:.3f}")
-    hbar(d, t, x0, x1, 455, 56, 0.713, RED, 3.0, "AI agent, 5 runs", lambda g: f"{0.713 * g:.3f}")
-    text(d, (x0 - 28, 535), "Claude Opus 5.5", F("Inter-Medium.otf", 26), MUTED, ramp(t, 3.0) * k, "rm")
-    if t > 4.6:
-        da = ramp(t, 4.6) * k
-        for v, dy in ((0.666, 0), (0.692, 0), (0.727, 0), (0.740, -11), (0.741, 11)):
-            cx = x0 + (x1 - x0) * v
-            d.ellipse((cx - 10, 520 + dy, cx + 10, 540 + dy), fill=mix(RED, da), outline=mix(BG, da), width=2)
-        text(d, (x0 + (x1 - x0) * 0.713, 552), "each dot is one run", F("Inter-Medium.otf", 22), MUTED, da, "mt")
-    if t > 6.2:
-        aa = ramp(t, 6.2, 0.8) * k
-        panel(d, (120, 770, 1800, 900), aa, fill=RED_L, outline=RED)
-        text(d, (960, 835), "0 of 27 AI runs reached the human expert's score.", F("InterDisplay-Black.otf", 48), RED, aa, "mm")
-    return img
+LEGEND = "Reward: the game score, rescaled.   0 = Dwarf, the textbook beginner's program   ·   1 = the human expert"
+
+def result(legend=LEGEND, pace=1.0, dot_label=True, sub="these 5, and 22 from earlier versions of the test"):
+    """`pace` < 1 plays the same reveal faster (the short pitch)."""
+    def scene(t, dur):
+        img, d, k = base(t, dur, {"gap"})
+        head(d, t, "4 · WHAT WE FOUND", "The AI falls short of the human expert", k)
+        x0, x1 = 760, 1650
+        a = ramp(t, 0.4) * k
+        text(d, (120, 300), legend, F("Inter-SemiBold.otf", 28), MUTED, a)
+        hbar(d, t, x0, x1, 375, 56, 0.0, DIM, 0.6 * pace, "Doing nothing", lambda g: "0.000", lab_col=MUTED)
+        hbar(d, t, x0, x1, 640, 56, 1.0, GREEN, 1.6 * pace, "Human expert program", lambda g: f"{1.0 * g:.3f}")
+        hbar(d, t, x0, x1, 480, 56, 0.713, RED, 3.0 * pace, "AI agent, 5 runs", lambda g: f"{0.713 * g:.3f}")
+        text(d, (x0 - 28, 560), "Claude Opus 5.5", F("Inter-Medium.otf", 26), MUTED, ramp(t, 3.0 * pace) * k, "rm")
+        if t > 4.6 * pace:
+            da = ramp(t, 4.6 * pace) * k
+            for v, dy in ((0.666, 0), (0.692, 0), (0.727, 0), (0.740, -11), (0.741, 11)):
+                cx = x0 + (x1 - x0) * v
+                d.ellipse((cx - 10, 547 + dy, cx + 10, 567 + dy), fill=mix(RED, da), outline=mix(BG, da), width=2)
+            if dot_label:
+                text(d, (x0 + (x1 - x0) * 0.713, 582), "each dot is one run", F("Inter-Medium.otf", 22), MUTED, da, "mt")
+        t1 = max(6.0, 0.54 * dur) * pace
+        if t > t1:
+            aa = ramp(t, t1, 0.8) * k
+            panel(d, (120, 760, 1800, 935), aa, fill=RED_L, outline=RED)
+            text(d, (960, 822), "0 of 27 AI runs reached the human expert's score.", F("InterDisplay-Black.otf", 48), RED, aa, "mm")
+            text(d, (960, 888), sub, F("Inter-SemiBold.otf", 28), FG, ramp(t, t1 + 0.8, 0.6) * k, "mm")
+        return img
+    return scene
+
+s_result = result()
 
 def s_clock(t, dur):
     img, d, k = base(t, dur, {"diff"})
     head(d, t, "4 · WHAT WE FOUND", "More time does not help", k)
     x0, x1 = 620, 1700
-    text(d, (120, 300), "We showed the AI a clock. Time it chose to work, out of 45 minutes:", F("Inter-SemiBold.otf", 32), MUTED, ramp(t, 0.4) * k)
+    text(d, (120, 300), "An earlier version of the test had no clock. Time the AI chose to work, out of 45 minutes:", F("Inter-SemiBold.otf", 32), MUTED, ramp(t, 0.4) * k)
     hbar(d, t, x0, x1, 350, 50, 13.6 / 45, DIM, 1.0, "without a clock", lambda g: "4–14 min", 34, 36)
     hbar(d, t, x0, x1, 420, 50, 32.7 / 45, FG, 2.0, "with a clock", lambda g: "16–33 min", 34, 36)
     text(d, (120, 540), "Its score:", F("Inter-SemiBold.otf", 32), MUTED, ramp(t, 3.4) * k)
@@ -221,6 +230,7 @@ def s_learned(t, dur):
             n = max(2, int(1 + ramp(t, t0 + 0.4, 2.0) * 4))
             d.line([(X(m), Y(v)) for m, v in zip(mins[:n], vis[:n])], fill=mix(ACC, a), width=6)
             d.line([(X(m), Y(v)) for m, v in zip(mins[:n], hid[:n])], fill=mix(RED, a), width=6)
+            text(d, (x + 36, 548), "run C1, minutes 0 to 30", F("Inter-Medium.otf", 24), MUTED, a)
             text(d, (x + 36, 800), "practice score: up", F("Inter-SemiBold.otf", 30), ACC, a)
             text(d, (x + 36, 842), "real score: down", F("Inter-SemiBold.otf", 30), RED, a)
         elif i == 1:
@@ -240,7 +250,7 @@ CHEATS = ["Copy a known program", "Copy it, change the numbers", "Recall a secre
 
 def s_cheat(t, dur):
     img, d, k = base(t, dur, {"integ"})
-    head(d, t, "CAN THE SCORE BE TRUSTED?", "Cheating scores zero", k)
+    head(d, t, "5 · CAN THE SCORE BE TRUSTED?", "Cheating scores zero", k)
     cols, tw, th = 3, 540, 120
     for i, s in enumerate(CHEATS):
         r, c = divmod(i, cols)
@@ -252,7 +262,7 @@ def s_cheat(t, dur):
         text(d, (x + 28, y + 88), "score 0.000", F("Inter-Black.otf", int(32 * (1 + 0.5 * (1 - st)))), RED, st, "lm")
     for i, s in enumerate(["34 cheats and shortcuts, run through the real scorer", "Copies and fakes score 0; shortcuts earn at most 0.24",
                            "Scoring runs in a separate, sealed box"]):
-        a = ramp(t, 4.6 + i * 0.9, 0.6) * k
+        a = ramp(t, 0.46 * dur + i * 0.12 * dur, 0.6) * k
         tick(d, 130, 640 + i * 90, a)
         text(d, (196, 662 + i * 90), s, F("Inter-SemiBold.otf", 38), FG, a, "lm")
     return img
@@ -263,7 +273,7 @@ TERM = [("$ harbor run -p harbor/corewar-hill -a oracle", "Mean: 1.000", GREEN, 
 
 def s_craft(t, dur):
     img, d, k = base(t, dur, {"craft"})
-    head(d, t, "CAN THE SCORE BE TRUSTED?", "Anyone can check it, with one command", k)
+    head(d, t, "5 · CAN THE SCORE BE TRUSTED?", "Anyone can check it, with one command", k)
     a = ramp(t, 0.4) * k
     panel(d, (120, 300, 1800, 690), a, fill=(250, 250, 251))
     for i, (cmd, out, c, note) in enumerate(TERM):
@@ -286,7 +296,7 @@ def s_craft(t, dur):
 
 def s_train(t, dur):
     img, d, k = base(t, dur, {"tie"})
-    head(d, t, "BONUS", "A small AI can learn from the game, a little", k)
+    head(d, t, "BONUS · TRAINING", "A small AI can learn from the game, a little", k)
     text(d, (120, 290), "A small open model (Qwen2.5-Coder-7B) practised and kept its best attempts.", F("Inter-Medium.otf", 32), MUTED, ramp(t, 0.5) * k)
     def pair(x, title, before, after, maxv, fmt, t0):
         a = ramp(t, t0, 0.6) * k
@@ -322,25 +332,29 @@ def s_close(t, dur):
     return img
 
 
-def s_question(t, dur):
-    img, d, k = base(t, dur, set())
-    a = ramp(t, 0.3, 0.8) * k
-    text(d, (W / 2, 250), "THE QUESTION", F("Inter-Bold.otf", 30), ACC, a, "mm")
-    text(d, (W / 2, 370), "Can AI coding agents match", F("InterDisplay-Black.otf", 76), FG, a, "mm")
-    text(d, (W / 2, 465), "human experts at real design work?", F("InterDisplay-Black.otf", 76), FG, a, "mm")
-    text(d, (W / 2, 580), "Not a quiz, and not brute force: real design, against opponents it never sees.",
-         F("Inter-Medium.otf", 36), MUTED, ramp(t, 1.8, 0.8) * k, "mm")
-    steps = ["The test we need", "The game", "Why it works", "What we found"]
-    fnt = F("Inter-Bold.otf", 34)
-    widths = [76 + d.textlength(s, font=fnt) for s in steps]
-    x = (W - sum(widths) - 3 * 80) / 2
-    for i, s in enumerate(steps):
-        aa = ramp(t, 3.2 + i * 0.7, 0.6) * k
-        d.ellipse((x, 700, x + 58, 758), fill=mix(ACC, aa))
-        text(d, (x + 29, 729), str(i + 1), F("Inter-Black.otf", 30), BG, aa, "mm")
-        text(d, (x + 76, 729), s, fnt, FG, aa, "lm")
-        x += widths[i] + 80
-    return img
+def question(steps):
+    def scene(t, dur):
+        img, d, k = base(t, dur, set())
+        a = ramp(t, 0.3, 0.8) * k
+        text(d, (W / 2, 250), "THE QUESTION", F("Inter-Bold.otf", 30), ACC, a, "mm")
+        text(d, (W / 2, 370), "Can AI coding agents match", F("InterDisplay-Black.otf", 76), FG, a, "mm")
+        text(d, (W / 2, 465), "human experts at real design work?", F("InterDisplay-Black.otf", 76), FG, a, "mm")
+        text(d, (W / 2, 580), "Not a quiz, and not brute force: real design, against opponents it never sees.",
+             F("Inter-Medium.otf", 36), MUTED, ramp(t, 1.8, 0.8) * k, "mm")
+        fnt = F("Inter-Bold.otf", 30)
+        widths = [66 + d.textlength(s_, font=fnt) for s_ in steps]
+        gap = min(80, (1680 - sum(widths)) / (len(steps) - 1))
+        x = (W - sum(widths) - (len(steps) - 1) * gap) / 2
+        for i, s_ in enumerate(steps):
+            aa = ramp(t, 3.0 + i * 0.6, 0.6) * k
+            d.ellipse((x, 704, x + 52, 756), fill=mix(ACC, aa))
+            text(d, (x + 26, 730), str(i + 1), F("Inter-Black.otf", 28), BG, aa, "mm")
+            text(d, (x + 66, 730), s_, fnt, FG, aa, "lm")
+            x += widths[i] + gap
+        return img
+    return scene
+
+s_question = question(["The test we need", "The game", "Why it works", "What we found", "Can we trust it?"])
 
 
 GOALS = [("Good design, not just compute", "Winning should take good ideas, not just more trial and error."),
@@ -351,8 +365,9 @@ GOALS = [("Good design, not just compute", "Winning should take good ideas, not 
 def s_goal(t, dur):
     img, d, k = base(t, dur, {"diff"})
     head(d, t, "1 · THE TEST WE NEED", "What we want to measure", k)
+    step = (0.58 * dur - 0.8) / (len(GOALS) - 1)
     for i, (h, sub) in enumerate(GOALS):
-        a = ramp(t, 0.8 + i * 1.6, 0.7) * k
+        a = ramp(t, 0.8 + i * step, 0.7) * k
         y = 310 + i * 150
         panel(d, (120, y, 1800, y + 128), a, fill=ACC_L if i == 0 else PANEL, outline=ACC if i == 0 else LINE, r=18)
         text(d, (160, y + 44), h, F("Inter-Bold.otf", 40), ACC if i == 0 else FG, a, "lm")
@@ -365,7 +380,7 @@ NEEDS = [("A real human level to compare with", "so that \u201cbelow human\u201d
          ("No tricks and no shortcuts", "every rule and tool given; copying does not pay", {"diff", "integ"})]
 
 def s_need(t, dur):
-    step = 2.4
+    step = (0.70 * dur - 0.8) / (len(NEEDS) - 1)
     i_now = min(len(NEEDS) - 1, int(max(0, t - 0.8) // step))
     active = set().union(*[n[2] for n in NEEDS[: i_now + 1]]) if t > 0.8 else set()
     img, d, k = base(t, dur, active)
@@ -385,11 +400,11 @@ FITS = [("A real human level", "30 years of expert programs; the one we compare 
         ("Opponents it cannot see", "it practises on 30 programs and is graded on 30 others", {"diff"}),
         ("No tricks, no shortcuts", "one page of rules, all documents, a clock; copies score zero", {"diff", "integ"})]
 
-def s_fits(t, dur):
-    step = 2.5
+def s_fits(t, dur, kicker="3 · WHY IT WORKS"):
+    step = (0.70 * dur - 0.8) / (len(FITS) - 1)
     i_now = min(len(FITS) - 1, int(max(0, t - 0.8) // step))
     img, d, k = base(t, dur, FITS[i_now][2] if t > 0.8 else set())
-    head(d, t, "3 · WHY IT WORKS", "Core War has everything the test needs", k)
+    head(d, t, kicker, "Core War has everything the test needs", k)
     for i, (h, sub, _) in enumerate(FITS):
         a = ramp(t, 0.8 + i * step, 0.6) * k
         y = 310 + i * 150
@@ -408,7 +423,7 @@ def s_real(t, dur):
             ("It skips the experts' opening move", "polishes one idea instead of rethinking it"),
             ("It stops too early", "says “done” while there is still time to improve")]
     for i, (game, work) in enumerate(rows):
-        t0 = 1.0 + i * 1.6
+        t0 = 1.0 + i * (0.42 * dur - 1.0) / 2
         a = ramp(t, t0, 0.6) * k
         y = 380 + i * 150
         panel(d, (120, y, 860, y + 120), a, fill=RED_L, outline=RED, r=16)
@@ -417,8 +432,8 @@ def s_real(t, dur):
         arrow(d, (880, y + 60), (980, y + 60), MUTED, a2, width=6)
         panel(d, (1000, y, 1800, y + 120), a2, r=16)
         text(d, (1030, y + 60), work, F("Inter-SemiBold.otf", 32), FG, a2, "lm")
-    if t > 6.6:
-        text(d, (W / 2, 880), "Here, each one is measured against a real human level.", F("InterDisplay-Bold.otf", 44), ACC, ramp(t, 6.6, 0.7) * k, "mm")
+    if t > 0.66 * dur:
+        text(d, (W / 2, 880), "Here, each one is measured against a real human level.", F("InterDisplay-Bold.otf", 44), ACC, ramp(t, 0.66 * dur, 0.7) * k, "mm")
     return img
 
 

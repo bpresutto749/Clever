@@ -3,9 +3,8 @@
 *Break the Agent (AfterQuery), Junction 2026 · Harbor task `harbor/corewar-hill` · run it
 with `harbor run -p harbor/corewar-hill -a opencode -m <provider/model>` (RUN_HARBOR.md)*
 
-**Videos:** [presentation, 3 min 53](media/corewar_explainer.mp4) ·
-[demo of one real run, 2 min 54](media/corewar_demo.mp4) ·
-[both in one, 6 min 22](media/corewar_pitch.mp4) (how they are made: video/README.md)
+**Videos:** [pitch, 1 min 59](media/corewar_pitch_1min59.mp4) ·
+[full demo, 6 min 42](media/corewar_demo_full.mp4) (how they are made, and two shorter cuts: video/README.md)
 
 **Headline.** On the shipped task, through `harbor run` + OpenCode, Claude Opus 5.5 scores
 **0.713** (5 runs, all ≤ 0.741, 95% CI 0.67–0.75) against **1.000** for the human reference
@@ -172,7 +171,7 @@ make eval        # no Docker: reference, baselines, every recorded run (with sta
 make exploits    # exploit and simple-strategy cases through the real verifier, plus stop-early tables
 make trajectories  # every submission of every run on its visible pool and on the hidden hill
 make overfit     # is the gap just overfitting? visible-pool gap vs extra visible-to-hidden drop
-make videos      # redraw both videos into media/ (video/README.md)
+make videos      # check and redraw the videos into media/ (video/README.md)
 make task lint   # regenerate harbor/corewar-hill(-public) from sources and lint them
 make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/model>   # Docker + API key
 ```
@@ -202,7 +201,7 @@ make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/mo
 | `baselines/` | simple and textbook warriors |
 | `tests/` | the regression tests (`make test`) |
 | `training/` | the small-model training (TRAINING.md) |
-| `video/`, `media/` | the code that draws the two videos, and the videos |
+| `video/`, `media/` | the code that draws the videos, and the videos |
 
 ## Honest limits
 
