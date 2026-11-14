@@ -1,11 +1,16 @@
 | group | warrior | length | hill score | reward | note |
 |---|---|---|---|---|---|
 | reference | reference_toxic.red | 100 | 0.487 ± 0.003 | 1.000 ± 0.008 |  |
-| final-env-opus-5.5 | run_H1.red | 13 | 0.401 ± 0.002 | 0.733 ± 0.007 |  |
-| final-env-opus-5.5 | run_H2.red | 84 | 0.319 ± 0.003 | 0.478 ± 0.010 |  |
-| final-env-opus-5.5 | run_H3.red | 89 | 0.309 ± 0.003 | 0.446 ± 0.010 |  |
-| final-env-opus-5.5 | run_H4.red | 90 | 0.329 ± 0.003 | 0.510 ± 0.008 |  |
-| final-env-opus-5.5 | run_H5.red | 32 | 0.388 ± 0.003 | 0.695 ± 0.008 |  |
+| final-env-opus-5.5 | run_J1.red | 15 | 0.394 ± 0.003 | 0.712 ± 0.008 |  |
+| final-env-opus-5.5 | run_J2.red | 17 | 0.375 ± 0.003 | 0.652 ± 0.011 |  |
+| final-env-opus-5.5 | run_J3.red | 11 | 0.320 ± 0.003 | 0.482 ± 0.009 |  |
+| final-env-opus-5.5 | run_J4.red | 21 | 0.393 ± 0.003 | 0.709 ± 0.008 |  |
+| final-env-opus-5.5 | run_J5.red | 20 | 0.394 ± 0.003 | 0.713 ± 0.008 |  |
+| v2-small-pool-opus-5.5 | run_H1.red | 13 | 0.401 ± 0.002 | 0.733 ± 0.007 |  |
+| v2-small-pool-opus-5.5 | run_H2.red | 84 | 0.319 ± 0.003 | 0.478 ± 0.010 |  |
+| v2-small-pool-opus-5.5 | run_H3.red | 89 | 0.309 ± 0.003 | 0.446 ± 0.010 |  |
+| v2-small-pool-opus-5.5 | run_H4.red | 90 | 0.329 ± 0.003 | 0.510 ± 0.008 |  |
+| v2-small-pool-opus-5.5 | run_H5.red | 32 | 0.388 ± 0.003 | 0.695 ± 0.008 |  |
 | v1-opus-5.5 | run_A.red | 14 | 0.375 ± 0.003 | 0.653 ± 0.010 |  |
 | v1-opus-5.5 | run_B.red | 65 | 0.372 ± 0.003 | 0.643 ± 0.010 |  |
 | v1-opus-5.5 | run_C.red | 79 | 0.391 ± 0.003 | 0.704 ± 0.010 |  |
@@ -30,7 +35,8 @@
 | group | n | mean reward | sd | 95% CI |
 |---|---|---|---|---|
 | reference | 1 | 1.000 | - | - |
-| final-env-opus-5.5 | 5 | 0.572 | 0.1318 | [0.4085, 0.7363] |
+| final-env-opus-5.5 | 5 | 0.653 | 0.0994 | [0.53, 0.7771] |
+| v2-small-pool-opus-5.5 | 5 | 0.572 | 0.1318 | [0.4085, 0.7363] |
 | v1-opus-5.5 | 5 | 0.732 | 0.1178 | [0.5853, 0.8782] |
 | v1-opus-5.5-lessons | 1 | 0.700 | - | - |
 | v1-sonnet-5.5 | 1 | 0.093 | - | - |

@@ -22,7 +22,70 @@
  "final-env-opus-5.5": {
   "rows": [
    {
-    "file": "runs/final-env/opus-5.5/run_H1.red",
+    "file": "runs/final-env/opus-5.5/run_J1.red",
+    "length": 15,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.394,
+    "reward": 0.7119,
+    "hill_se": 0.0026,
+    "reward_se": 0.0081
+   },
+   {
+    "file": "runs/final-env/opus-5.5/run_J2.red",
+    "length": 17,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3748,
+    "reward": 0.6521,
+    "hill_se": 0.0034,
+    "reward_se": 0.0106
+   },
+   {
+    "file": "runs/final-env/opus-5.5/run_J3.red",
+    "length": 11,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.32,
+    "reward": 0.4818,
+    "hill_se": 0.003,
+    "reward_se": 0.0093
+   },
+   {
+    "file": "runs/final-env/opus-5.5/run_J4.red",
+    "length": 21,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3931,
+    "reward": 0.7091,
+    "hill_se": 0.0027,
+    "reward_se": 0.0084
+   },
+   {
+    "file": "runs/final-env/opus-5.5/run_J5.red",
+    "length": 20,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3943,
+    "reward": 0.7128,
+    "hill_se": 0.0026,
+    "reward_se": 0.0081
+   }
+  ],
+  "summary": {
+   "n": 5,
+   "mean": 0.6535,
+   "sd": 0.0994,
+   "ci95": [
+    0.53,
+    0.7771
+   ]
+  }
+ },
+ "v2-small-pool-opus-5.5": {
+  "rows": [
+   {
+    "file": "runs/v2-small-pool/opus-5.5/run_H1.red",
     "length": 13,
     "valid": true,
     "copy_of": null,
@@ -32,7 +95,7 @@
     "reward_se": 0.0072
    },
    {
-    "file": "runs/final-env/opus-5.5/run_H2.red",
+    "file": "runs/v2-small-pool/opus-5.5/run_H2.red",
     "length": 84,
     "valid": true,
     "copy_of": null,
@@ -42,7 +105,7 @@
     "reward_se": 0.0096
    },
    {
-    "file": "runs/final-env/opus-5.5/run_H3.red",
+    "file": "runs/v2-small-pool/opus-5.5/run_H3.red",
     "length": 89,
     "valid": true,
     "copy_of": null,
@@ -52,7 +115,7 @@
     "reward_se": 0.01
    },
    {
-    "file": "runs/final-env/opus-5.5/run_H4.red",
+    "file": "runs/v2-small-pool/opus-5.5/run_H4.red",
     "length": 90,
     "valid": true,
     "copy_of": null,
@@ -62,7 +125,7 @@
     "reward_se": 0.0078
    },
    {
-    "file": "runs/final-env/opus-5.5/run_H5.red",
+    "file": "runs/v2-small-pool/opus-5.5/run_H5.red",
     "length": 32,
     "valid": true,
     "copy_of": null,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build a training hill from the published corpus, disjoint from the evaluation
-hill and the sparring pool, and also free of near-copies of them (so that a
+hill and from both sparring pools (the shipped 30 and the earlier 10), and also free of near-copies of them (so that a
 derivative of a hidden-hill warrior cannot leak into training).
 
 Output: training/train_hill/*.red (default 60 warriors, fixed seed).
@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT))
 from arena import core
 
 N, SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 60, 20261114
-protected = [ROOT / "data" / "hill", ROOT / "data" / "sparring"]
+protected = [ROOT / "data" / "hill", ROOT / "data" / "sparring", ROOT / "data" / "sparring_small"]
 prot_names = {p.stem for d in protected for p in d.glob("*.red")}
 cands = []
 for f in sorted((ROOT / "data" / "corpus").rglob("*.red")):

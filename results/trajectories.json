@@ -94,5 +94,75 @@
    "hill": 0.32,
    "reward": 0.4818
   }
+ ],
+ "J4": [
+  {
+   "minute": 0.7,
+   "sparring": 0.1735,
+   "hill": 0.1475,
+   "reward": 0.0
+  },
+  {
+   "minute": 6.7,
+   "sparring": 0.2448,
+   "hill": 0.2306,
+   "reward": 0.2039
+  },
+  {
+   "minute": 15.4,
+   "sparring": 0.3812,
+   "hill": 0.3984,
+   "reward": 0.7257
+  },
+  {
+   "minute": 26.9,
+   "sparring": 0.3856,
+   "hill": 0.3995,
+   "reward": 0.729
+  },
+  {
+   "minute": 30.9,
+   "sparring": 0.3889,
+   "hill": 0.3931,
+   "reward": 0.7091
+  }
+ ],
+ "J5": [
+  {
+   "minute": 0.3,
+   "sparring": 0.2595,
+   "hill": 0.1892,
+   "reward": 0.0751
+  },
+  {
+   "minute": 4.9,
+   "sparring": 0.3646,
+   "hill": 0.3962,
+   "reward": 0.7188
+  },
+  {
+   "minute": 16.7,
+   "sparring": 0.3812,
+   "hill": 0.4047,
+   "reward": 0.7451
+  },
+  {
+   "minute": 19.5,
+   "sparring": 0.3894,
+   "hill": 0.4029,
+   "reward": 0.7395
+  },
+  {
+   "minute": 26.9,
+   "sparring": 0.3923,
+   "hill": 0.3943,
+   "reward": 0.7128
+  },
+  {
+   "minute": 32.2,
+   "sparring": 0.3923,
+   "hill": 0.3943,
+   "reward": 0.7128
+  }
  ]
 }

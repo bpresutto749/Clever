@@ -9,7 +9,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from arena import core  # noqa: E402
 
-TRAIN_HILL = sorted((ROOT / "training" / "train_hill").glob("*.red"))
+# Training reward pool: the agent's own 30 sparring warriors (same distribution as the
+# hidden hill, r = 0.83 with it over agent-level warriors, results/proxy_check.md),
+# plus the 60-warrior training hill for breadth. Neither contains a hidden-hill warrior.
+TRAIN_HILL = sorted((ROOT / "data" / "sparring").glob("*.red")) + sorted((ROOT / "training" / "train_hill").glob("*.red"))
 EVAL_HILL = sorted((ROOT / "data" / "hill").glob("*.red"))
 GATE_DIRS = [ROOT / "data" / "hill", ROOT / "data" / "sparring"]
 CORPUS = [ROOT / "data" / "corpus"]

@@ -2,182 +2,188 @@
 
 ## Evidence
 
-**Final environment** (`runs/final-env/`). 5 fresh Claude Opus 5.5 runs (H1–H5) under the
-exact conditions of the Harbor task:
-- 45 minutes;
-- pMARS and the documentation, including the strategy primer;
-- 10 black-box sparring warriors, reached through the arena server;
-- every submission timestamped and kept by the server.
+**17 complete agent runs, in three versions of the environment, all 45 minutes.**
 
-**Version 1** (`runs/opus-5.5*`, `runs/sonnet-5.5`). 7 earlier runs: 5 Opus, 1 Opus with
-lessons, 1 Sonnet 5.5. The sparring sources were visible and there was no primer. These runs
-are rescored at 500 rounds and kept as supporting evidence.
+| version | visible opponents | primer | runs | where |
+|---|---|---|---|---|
+| **v3 (shipped)** | 30 black-box warriors from the same ladder as the hill (r = 0.83 with the hidden hill over 19 agent-level final warriors; `results/proxy_check.md`) | yes | Opus 5.5 J1–J5 | `runs/final-env/` |
+| v2 | 10 black-box warriors (r = 0.57) | yes | Opus 5.5 H1–H5 | `runs/v2-small-pool/` |
+| v1 | the same 10, with their source code visible | no | Opus 5.5 A, B, C, D2, E2; Opus + lessons G; Sonnet 5.5 F | `runs/opus-5.5*`, `runs/sonnet-5.5` |
 
-**Outside evidence.** The 4 final LLM warriors from CodeClash's CC:Ladder (July 2026).
+**What each run leaves behind.**
+- From v2 on, the arena server timestamps every submission and keeps its source
+  (`runs/*/sidecar/`).
+- For every run: the agent's working directory (`runs/*/workdirs/*.tar.gz`) and a summary of
+  its own final report (`run_*.md`).
 
-**Where the numbers come from:**
-- `results/eval.md` (`make eval`);
-- `results/trajectories.md` (every submission scored on sparring and on the hill);
-- `results/stop_early.md`.
+**Where the numbers come from.**
+- `results/eval.md` (`make eval`; every score with its start-position standard error, about
+  ±0.01 in reward);
+- `results/trajectories*.md` and `results/stop_early*.md`.
+
+**Outside evidence.** The final LLM warriors from CodeClash's CC:Ladder (July 2026).
 
 ## Headline
 
-| | hidden-hill score | reward (0 = one-line imp, 1 = human reference) |
-|---|---|---|
-| human reference (Toxic, fixed before any run) | 0.487 | 1.000 |
-| **Opus 5.5, final environment, 5 runs** | 0.309–0.401 | **mean 0.572, 95% CI [0.41, 0.74]**; every run ≤ 0.733 |
-| Opus 5.5, version 1, 5 runs | 0.372–0.465 | mean 0.732, 95% CI [0.59, 0.88] |
-| Opus 5.5 + lessons, version 1 (1 run) | 0.390 | 0.700 |
-| Sonnet 5.5, version 1 (1 run) | 0.195 | 0.093 |
-| CodeClash ladder warriors (Opus 4.8, GPT-5.5, Sonnet 5, Gemini 3.5 Flash) | 0.083–0.332 | 0.000–0.518 |
-
-Each score's start-position standard error is about ±0.003 in hill score, or ±0.01 in reward
-(`make eval`).
-- In the final environment, the reference beats every run by 0.27–0.55 in reward.
-- The smallest margin anywhere is version-1 run D2's: 0.067, about five combined standard
-  errors.
-
-The agents are not short of means:
-- they write working Redcode;
-- they have the exact scoring simulator;
-- they each ran between 139 and 527 sparring battles;
-- in the final environment, they have a primer covering the archetypes, the classic triangle
-  and composite designs.
-
-The failures below are decisions.
-
-## F1. Optimising the visible set: the agent's own trajectory shows it
-
-The arena server keeps every submission with a timestamp. We scored all 26 of them on both
-the sparring pool (what the agent sees) and the hidden hill (what it is rewarded on). The
-sparring score rises with every submission in every run, because agents submit only
-improvements. The hidden score does not follow:
-
-| run | first real draft (sparring ≥ 0.30): minute, sparring → hidden | final: minute, sparring → hidden | change, sparring / hidden |
+| | visible pool | hidden-hill score | reward (0 = one-line imp, 1 = human reference) |
 |---|---|---|---|
-| H1 | 6.2: 0.377 → 0.394 | 19.3: 0.436 → 0.401 | +0.059 / +0.007 |
-| H2 | 2.8: 0.341 → 0.330 | 28.5: 0.488 → 0.319 | +0.147 / −0.011 |
-| H3 | 6.2: 0.316 → 0.331 | 28.7: 0.376 → 0.309 | +0.060 / −0.022 |
-| H4 | 2.7: 0.318 → 0.345 | 30.1: 0.421 → 0.329 | +0.103 / −0.016 |
-| H5 | 1.4: 0.360 → 0.378 | 18.3: 0.409 → 0.388 | +0.049 / +0.010 |
-| **mean** | | | **+0.084 / −0.006** |
+| human reference (Toxic, fixed before any run) | 0.507 (v3 pool) | 0.487 | 1.000 |
+| **Opus 5.5, v3, 5 runs** | **0.349–0.455** | 0.320–0.394 | **mean 0.653, 95% CI [0.53, 0.78]**; all ≤ 0.713 |
+| Opus 5.5, v2, 5 runs | | 0.309–0.401 | mean 0.572, CI [0.41, 0.74] |
+| Opus 5.5, v1, 5 runs | | 0.372–0.465 | mean 0.732, CI [0.59, 0.88] |
+| Opus 5.5 + lessons (v1, 1 run) | | 0.390 | 0.700 |
+| Sonnet 5.5 (v1, 1 run) | | 0.195 | 0.093 |
+| CodeClash ladder warriors (Opus 4.8, GPT-5.5, Sonnet 5, Gemini 3.5 Flash) | | 0.083–0.332 | 0.000–0.518 |
 
-"Real draft" is set at a sparring score of 0.30 because a one-line imp gets 0.18 on that pool.
+None of the 17 runs reached the reference. The closest is v1's D2 at 0.933, a margin of about
+five combined standard errors. In v3, the margins are 0.29–0.52.
 
-After their first real draft, agents spend 13–27 minutes raising their visible score
-by 0.08 on average. That is worth about 0.26 of reward if it transferred; on the hidden hill
-it is worth nothing.
+## F1. A plateau below human level, even on the opponents the agent can see
 
-**Some runs make themselves worse.**
-- In 3 of the 5 runs, the final submission is not the agent's best on the hidden hill.
-- H4's best hidden score came at minute 13 (reward 0.66). After 17 more minutes of sparring
-  tuning, it ended at 0.51.
-- H3's best was its first real draft, at minute 6.
+In v3, the visible pool is a faithful proxy: 30 warriors drawn from the same ladder as the
+hidden hill, with the same strength spread. Every agent's final warrior scores below the
+human reference *on that visible pool*:
 
-**H2 reaches the reference's visible level without its hidden level.** Its sparring score
-(0.488) is level with the human reference's on the same pool (0.498). Its hidden score is
-0.319, against 0.487. The human warrior loses 0.011 from sparring to hill; the five final
-runs lose 0.021–0.169.
+| | J1 | J2 | J3 | J4 | J5 | reference |
+|---|---|---|---|---|---|---|
+| visible (30 sparring) | 0.407 | 0.455 | 0.349 | 0.389 | 0.392 | **0.507** |
+| hidden hill | 0.394 | 0.375 | 0.320 | 0.393 | 0.394 | **0.487** |
 
-**The agents' own forecasts are miscalibrated in the same direction.** Each run converted its
-sparring score into an expected reward. All five forecasts were too high:
+So the shortfall is not missing information. The agents can measure, at will and with the
+scoring settings, that their warrior is weaker than a strong human one against
+representative opposition, and they cannot close the gap.
 
-| | H1 | H2 | H3 | H4 | H5 |
-|---|---|---|---|---|---|
-| forecast | 0.84 | ~1.0 | ~0.6 | 0.80 | 0.76 |
-| actual | 0.73 | 0.48 | 0.45 | 0.51 | 0.70 |
+**Most of the progress comes from the first draft.** Every v3 submission was scored on both
+pools (`results/trajectories.md`):
 
-The same pattern is in version 1: the run with the highest sparring score there (B, above the
-reference on sparring) was the lowest Opus run on the hill.
+| run | first real draft (visible ≥ 0.30) → final: minutes | visible | hidden |
+|---|---|---|---|
+| J1 | 3.4 → 33.1 | 0.325 → 0.407 | 0.351 → 0.394 (best: 0.416 at minute 4.4) |
+| J2 | 5.1 → 23.9 | 0.387 → 0.455 | 0.323 → 0.375 |
+| J3 | 6.2 → 23.5 | 0.342 → 0.349 | 0.329 → 0.320 |
+| J4 | 15.4 → 30.9 | 0.381 → 0.389 | 0.398 → 0.393 |
+| J5 | 4.9 → 32.2 | 0.365 → 0.392 | 0.396 → 0.394 |
 
-## F2. Knowing about selection bias, and selecting on it anyway
+- After the first real draft, the remaining 15–30 minutes add +0.038 visible and +0.016
+  hidden on average.
+- In every run, the final submission is not the agent's best on the hidden hill. For J2, J4
+  and J5 the difference is within noise.
+- J1's is not: it had reward 0.78 at minute 4 and finished at 0.71.
 
-Four of the five final runs wrote, in their own reports, that their number was inflated by
-choosing the best of many noisy variants:
+## F2. Converging on one archetype and abandoning composites
+
+All five v3 runs built p-space selectors (switch strategy per opponent or after losses), and
+several built quick-scan openings. All of them found these weaker than their tuned single
+warrior and dropped them, giving the same reason in their own words:
+- J1: "the bigger footprint and switching cost cancel the gain";
+- J2: "the longer code weakens the scanner, and selection does not make up for it";
+- J4: "the decision code, not empty, serves as a target for scanners. So I abandoned
+  p-space";
+- J5: "the code is about 86 lines, so it is easier to find".
+
+**What they submitted instead.**
+- J1: a silk paper.
+- J2: a scanner.
+- J3: a stone.
+- J4, J5: a paper with a stone running in parallel, the simplest possible combination.
+
+The same happened in v1: four lone scanners and one lone paper.
+
+The human reference is a composite: its strategy line reads "qscan -> paper/imp". By a
+keyword count of the hill's own strategy lines, qscan appears in 14 of 30 hill warriors and
+imps in 10.
+
+The agents diagnose correctly why a naive composite loses: footprint, decision overhead,
+boot timing. They then treat that as a reason to stop rather than as the engineering problem
+to solve.
+
+## F3. With a small visible set, they optimise the visible score, and it does not transfer
+
+v2 is the same environment with 10 visible opponents (r = 0.57 with the hidden hill). There:
+- the visible score rose by **+0.084** on average after the first real draft;
+- the hidden score moved **−0.006** (`results/trajectories_v2.md`);
+- run H2 matched the reference's visible score (0.488 vs 0.498) while scoring 0.319 vs 0.487
+  hidden;
+- all five agents forecast their reward too high, by 0.06–0.52.
+
+With v3's faithful pool, the same behaviour transfers partly: +0.038 visible, +0.016 hidden.
+
+The agents optimise whatever they can see, with no allowance for how representative it is.
+They never built a held-out set, although the primer says that "a warrior is only as good as
+the set of opponents it was tested against".
+
+## F4. Naming the noise and selecting on it anyway
+
+Across v2 and v3, most runs wrote that their best-of-many number was inflated, and then
+submitted it:
 - H1: "the 200-round figure is optimistic";
-- H2: "0.488 is probably a bit flattering … neighbouring settings give 0.44–0.45";
-- H3: "0.376 is probably a lucky draw";
-- H4: "differences of ±0.02 are of the order of the noise".
+- H2: "0.488 is probably a bit flattering";
+- H3: "probably a lucky draw";
+- J2: "differences of 0.01 between variants are probably noise with respect to the hidden
+  hill";
+- J4: "its lead over the paper alone (+0.003) is at noise level".
 
-Each then submitted that best-of-many variant anyway. None reports holding out any sparring
-warrior, or any of its own warriors, as a validation set for the final choice. The primer
-says: "a warrior is only as good as the set of opponents it was tested against … do not
-trust differences that are smaller than the noise".
+None reports holding out any sparring warrior, or any of its own warriors, for the final
+choice.
 
-## F3. Composites that learn the sparring pool
+## F5. Stopping early with budget left
 
-With the primer, 4 of the 5 final runs built p-space selectors that pick a component per
-opponent (H2, H3, H4, H5). Version 1 had no composite among its 5 fresh runs. The selectors
-were tuned on the 10 sparring warriors:
-- exploration length;
-- scoring weights;
-- which arms to include.
+| | v3: J1 | J2 | J3 | J4 | J5 | v2: H1–H5 | v1: A–E2, G | v1: F (Sonnet) |
+|---|---|---|---|---|---|---|---|---|
+| minutes used of 45 | ~35 | ~30 | ~27 | ~33 | ~33 | 27–32 | 25–28 | ~8 |
 
-The four selectors score 0.45–0.70. The only lone warrior (H1, a 13-line paper) scored
-highest (0.73).
+All 17 runs stopped with 10–37 minutes unused, convinced they had converged. That includes
+G, whose instructions said "use the whole time budget".
 
-The reference is a composite too (qscan → paper/imp). The failure is not choosing composites;
-it is fitting the combination to what is visible.
+## F6. Telling them does not fix it
 
-## F4. Stopping early with budget left
-
-| run | H1 | H2 | H3 | H4 | H5 | v1: A | B | C | D2 | E2 | F | G |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| minutes used of 45 | ~31 | ~29 | ~30 | ~32 | ~27 | ~28 | ~27 | ~28 | ~25 | ~28 | ~8 | ~28 |
-
-All 12 runs stopped with 13–37 minutes unused. That includes G, whose instructions said "use
-the whole time budget". Given F1, more time spent the same way would not have helped. The
-time was available for validation, and none of the runs used it that way.
-
-## F5. Being told does not fix it (version 1, one run)
-
-Run G received a four-point lessons section (`task_src/lessons.md`): validation discipline,
-an archetype test set with random positions, composites, and using the whole budget.
-- It followed the method advice.
-- It built a composite.
-- It still stopped at 28 minutes.
+**Run G (v1)** received a lessons section derived from F1–F5: validation discipline, an
+archetype test set, composites, the whole budget.
+- It followed the method advice and built a composite.
+- It stopped at 28 minutes.
 - It scored 0.700, inside the fresh runs' range.
 
-The final environment's primer carries the same general advice, and F1–F3 persist. Prompting
-does not close this gap. That is why the upgrade path is training on environment experience
-(TRAINING.md).
+**v2 and v3** give every run a strategy primer that describes the archetypes, the classic
+triangle, composites and testing practice. The failures persist.
 
-## The stop-early baseline, read correctly
+Prompt-level knowledge does not close this gap. That is why the upgrade path is training on
+environment experience (TRAINING.md).
 
-Scoring each run's last accepted submission at a cutoff (`results/stop_early.md`):
+## The stop-early baseline
+
+Each run's last accepted submission at a cutoff (`results/stop_early.md`, v3):
 
 | | 5 min | 10 min | 20 min | final |
 |---|---|---|---|---|
-| mean reward of the 5 final runs | 0.35 | 0.55 | 0.59 | 0.57 |
+| mean reward of the 5 v3 runs | 0.49 | 0.54 | 0.68 | 0.65 |
 
-**Before 5 minutes, an agent has little.** Two of the five runs had only a placeholder dwarf
-or a weak first draft (reward 0), and the textbook drafts score 0.00–0.20.
+**The early drafts are not trivial programs.**
+- Trivial and textbook programs earn 0.00–0.20.
+- Doing nothing earns 0.
+- A frontier model's 5-minute draft is a working silk paper or stone, which earns about half
+  the reference's reward.
 
-**After 10 minutes, the reward stops growing.** The 10-minute baseline is a real Opus draft,
-and the remaining 35 minutes add nothing on average. This is F1 seen from the other side, not
-a weakness of the reward: the reference earns 1.0, and no trivial program earns more than
-0.20.
+**After 20 minutes, the reward stops growing.** That is F1 seen from the other side: the
+reward tracks warrior strength, and the agents stop getting stronger. The reference shows
+where strength can go: 1.0.
 
 ## Why this matters beyond Core War
 
 Agents increasingly write code that is judged against adversaries or distributions they
-cannot see:
+cannot fully see:
 - exploit and defence code;
 - trading and bidding strategies;
 - game agents;
 - code that must survive fuzzing or red-teaming.
 
-They get a small visible test set and a simulator, and they are told the test set is not the
-target. This task isolates exactly that:
+This task isolates that situation:
 - **exact:** the simulator is the judge;
 - **cheap:** a few seconds per evaluation;
-- **anchored:** decades of human expert programs, so "stronger" is not hypothetical.
+- **anchored:** decades of human expert programs, so "stronger" is a measured fact.
 
-The agent's behaviour is the failure. Even when told, it:
-- climbs the visible score;
-- discounts its own warnings about noise and selection;
-- fits its adaptive logic to what it sees;
-- stops when the visible number stops moving.
-
-These are the behaviours that make agent-written code pass the visible tests and fail on the
-hidden ones.
+The agent's behaviour is the failure:
+- it plateaus at the first archetype that works;
+- it abandons the harder composite designs that experts use, after diagnosing exactly why
+  its first attempt failed;
+- it optimises whatever test set it is given;
+- it stops while budget remains.
