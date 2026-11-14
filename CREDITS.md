@@ -1,5 +1,11 @@
 # Credits and licences
 
+Our own code and documents are under the MIT licence (`LICENSE`). The third-party parts
+listed below are not: they keep their own licences and authors. This covers every copy of
+pMARS (`pmars/` and the copies under `harbor/`), the reference documents in `doc/` other
+than `doc/strategy_primer.md`, and the warriors in `data/`, `training/train_hill/` and
+`runs/codeclash-ladder-2026-07/`.
+
 - **pMARS 0.9.4.** The Core War simulator (`pmars/`, GPL v2, see `pmars/COPYING` and
   `pmars/AUTHORS`). Our copy comes from the CodeClash fork
   (github.com/CodeClash-ai/CoreWar), built unmodified in KotH-server mode

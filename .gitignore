@@ -7,3 +7,4 @@ video/build/
 .venv-mlx/
 training/mlx/runs/*/adapter_*/
 training/mlx/runs/*/smoke/
+jobs/

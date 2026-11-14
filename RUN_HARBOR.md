@@ -1,8 +1,9 @@
 # Running the task with Harbor + OpenCode
 
 You need Docker, Harbor (`uv tool install harbor`, or `pip install harbor`) and an API key
-for one model provider. The examples use OpenAI and Gemini, whose sponsor credits are
-available at Junction.
+for one model provider. At Junction, Google (Gemini) and Anthropic (Claude) provide API
+credits; OpenAI's Junction credits are for Codex, not the API, so an OpenAI model needs your
+own API key.
 
 ```bash
 git clone <this repo> && cd corewar-env
@@ -18,7 +19,8 @@ harbor run -p harbor/corewar-hill -a nop
 
 # 3. The agent: OpenCode, 3 attempts.
 harbor run -p harbor/corewar-hill -a opencode -m openai/<model> -k 3
-#    e.g.  -m google/<gemini model>   or   -m anthropic/<claude model>
+#    e.g.  -m gemini/<gemini model>   or   -m anthropic/<claude model>
+#    (Harbor 0.26 reads the prefix gemini/, not google/, and then uses GEMINI_API_KEY)
 ```
 
 **Model endpoint not on the allowlist.** The agent phase runs with an allowlist of common

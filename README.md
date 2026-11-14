@@ -186,6 +186,7 @@ make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/mo
 | DECISIONS.md | what was fixed before the agent runs, and what changed after which review |
 | RUN_HARBOR.md | Harbor commands and what to look at in a run |
 | CREDITS.md | pMARS (GPL), CodeClash, Digital Red Queen, and the warrior authors |
+| LICENSE | MIT, for our own code and documents; the third-party parts listed in CREDITS.md keep their own licences |
 
 | folder | content |
 |---|---|
