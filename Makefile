@@ -4,6 +4,7 @@ MODEL ?= anthropic/claude-opus-5-5
 TASK = harbor/corewar-hill
 STOP_EARLY_RUNS = $(shell cat runs/final-env/start_times.txt 2>/dev/null)
 STOP_EARLY_RUNS_V2 = $(shell cat runs/v2-small-pool/start_times.txt 2>/dev/null)
+HARBOR_RUNS = $(shell cat runs/harbor/start_times.txt 2>/dev/null)
 
 .PHONY: all pmars task lint test eval baselines exploits trajectories harbor-reference harbor-nop harbor-agent harbor-all clean
 
@@ -29,6 +30,7 @@ eval: pmars
 	$(PY) eval.py --markdown results/eval.md --json results/eval.json \
 	  "reference=data/reference_toxic.red" \
 	  "final-env-opus-5.5=runs/final-env/opus-5.5/*.red" \
+	  "harbor-opencode-opus-5.5=runs/harbor/final/*.red" \
 	  "v2-small-pool-opus-5.5=runs/v2-small-pool/opus-5.5/*.red" \
 	  "v1-opus-5.5=runs/opus-5.5/*.red" \
 	  "v1-opus-5.5-lessons=runs/opus-5.5-lessons/*.red" \
@@ -47,6 +49,7 @@ exploits: pmars
 trajectories: pmars
 	$(PY) exploits/trajectories.py --spar data/sparring --out trajectories $(STOP_EARLY_RUNS)
 	$(PY) exploits/trajectories.py --spar data/sparring_small --out trajectories_v2 $(STOP_EARLY_RUNS_V2)
+	$(PY) exploits/trajectories.py --spar data/sparring --out trajectories_harbor $(HARBOR_RUNS)
 
 # Harbor runs (need Docker). Judges' protocol: reference, do-nothing, 3+ agent runs.
 harbor-reference: task

@@ -55,9 +55,12 @@ def test_copy_gate_catches_published_copies_but_not_originals():
         ins = core.assemble(p.read_text())[0]
         assert core.nearest_published(ins, gate)["copy"]
     placeholder = core.assemble((ROOT / "doc" / "example_dwarf.red").read_text())[0]
+    reference = core.assemble((ROOT / "data" / "reference_toxic.red").read_text())[0]
     for p in sorted((ROOT / "runs").rglob("*.red")):
         ins = core.assemble(p.read_text())[0]
         if ins == placeholder:      # some agents submitted the documentation's dwarf as a placeholder
+            continue
+        if ins == reference:        # the Harbor oracle run submits the reference (exempt by sha in the verifier)
             continue
         assert not core.nearest_published(ins, gate)["copy"], p
 

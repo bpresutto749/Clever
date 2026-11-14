@@ -19,11 +19,13 @@ using the exact simulator (pMARS). To work with, the agent gets:
 primer, and a representative test set whose scores track the hidden hill (r = 0.83 over 19
 agent-level warriors, `results/proxy_check.md`). Frontier agents still plateau far below a human expert's warrior,
 **even on the opponents they can see**:
-- **On the visible pool**, they reach 0.35–0.46, against 0.507 for the human reference.
+- **On the visible pool**, they reach 0.34–0.46, against 0.507 for the human reference.
 - **They converge on a single tuned archetype.** They try composite designs, find them weaker
   than that archetype, and abandon them, although the strongest human warriors are
   composites.
-- **They stop early.** Every run stopped with 10–18 of 45 minutes unused.
+- **They stop early.** Every local run stopped with 10–18 of 45 minutes unused. Through
+  Harbor + OpenCode, the five runs stopped after 4–14 minutes, and three of them said they
+  had run out of time ("I ran out of the 45 minutes"). None ran `date`.
 - **They mistake the visible score for the real one.** With a smaller visible pool, they
   optimised it while the hidden score stayed flat or fell (FAILURES.md).
 
@@ -60,6 +62,7 @@ exploit and defence code, bidding agents, code under fuzzing.
 | | visible pool (30) | hidden-hill score | reward |
 |---|---|---|---|
 | **Human reference** (Toxic) | 0.507 | 0.487 | **1.000** |
+| **Claude Opus 5.5 via `harbor run` + OpenCode, 5 runs (each stopped itself after 4–14 min)** | 0.342–0.422 | 0.362–0.398 | **0.704** (95% CI 0.65–0.76; all 5 ≤ 0.739) |
 | **Claude Opus 5.5, shipped environment, 5 fresh runs × 45 min** | 0.349–0.455 | 0.320–0.394 | **0.671** (95% CI 0.55–0.79; all 5 ≤ 0.728) |
 | Claude Opus 5.5, version 2 (10 black-box sparring), 5 runs | — | 0.309–0.401 | 0.595 (CI 0.44–0.75) |
 | Claude Opus 5.5, version 1 (10 visible sparring sources, no primer), 5 runs | — | 0.372–0.465 | 0.746 (CI 0.61–0.88) |
@@ -69,9 +72,32 @@ exploit and defence code, bidding agents, code under fuzzing.
 | Dwarf (the documentation's example; a published warrior, so as a submission the copy gate gives 0) | — | 0.147 | 0.000 |
 | Do-nothing | — | 0.000 | 0.000 |
 
-None of the 17 Opus or Sonnet runs, across three environment versions, reached the reference.
-The best reached 0.936. Every number comes from `make eval` (`results/eval.md`). Run
-histories, agents' working directories and their own reports are in `runs/`.
+None of the 22 Opus or Sonnet runs, across three environment versions and two harnesses,
+reached the reference. The best reached 0.936. Every number comes from `make eval`
+(`results/eval.md`). For the Harbor runs, `make eval` rescores the five submissions outside
+Docker and matches the reward the Harbor verifier wrote (to the 4 decimals `eval.md` reports) (`runs/harbor/`,
+`results/trajectories_harbor.md`). Run histories, agents' working directories and their own
+reports are in `runs/`.
+
+**Real Harbor runs** (Harbor 0.25.0, Docker Desktop, macOS arm64, egress control on;
+logs in `runs/harbor/`):
+
+| `harbor run -p harbor/corewar-hill …` | reward | wall time | cost |
+|---|---|---|---|
+| `-a oracle` | 1.000 | 1 min 09 | — |
+| `-a nop` | 0.000 | 27 s | — |
+| `-a opencode -m anthropic/claude-opus-5-5 -k 1` | 0.739 | 5 min 33 (agent 4.1 min) | $0.50 |
+| `-a opencode -m anthropic/claude-opus-5-5 -k 4` (4 concurrent trials) | 0.736, 0.732, 0.681, 0.632 | 15 min 45 (agents 4.4–13.6 min) | $2.04 |
+
+Per-run details, and which trial directory is which run (OC1–OC5), are in
+`runs/harbor/README.md`.
+
+Every OpenCode trial is flagged `NonZeroAgentExitCodeError`: OpenCode prints an `EPIPE: broken
+pipe` error when it starts and exits with code 1 after the agent finishes normally (the
+last event of every trial is `step_finish`, reason `stop`). The verifier still runs and the
+reward stands.
+An earlier attempt that failed on an empty API credit balance, before any model call, is
+kept in `runs/harbor/opencode-opus-5.5-no-credit` and not counted.
 
 ## How the environment works
 
@@ -128,15 +154,18 @@ make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/mo
 
 ## Honest limits
 
-- **How the agent runs were made.** The recorded agent runs were made with Claude agents in
-  a local copy of the arena, with the same instruction, simulator and sparring server
-  (reached through `tools/spar.py`, which calls the same MCP tools). They were not made
-  through Harbor + OpenCode, and no non-Claude model was run.
+- **How the agent runs were made.** The 17 earlier runs were made with Claude agents in a
+  local copy of the arena, with the same instruction, simulator and sparring server
+  (reached through `tools/spar.py`, which calls the same MCP tools). Only the five runs
+  in `runs/harbor/` went through Harbor + OpenCode. No non-Claude model was run.
 - **Concurrency.** Runs J1–J3 and then J4–J5 ran concurrently, sharing one 2-CPU machine.
   Harbor gives each trial its own 2 CPUs.
 - **Stop-early.** A frontier model's 5-minute draft is already a working warrior: stop-early
-  at 5 minutes earns 0.50 on average, against 0.67 for the full runs. FAILURES.md reads this
-  as the plateau it is.
+  at 5 minutes earns 0.50 on average in the local runs (0.65 in the Harbor runs), against
+  0.67 (0.70) for the full runs. Through Harbor the agents stop on their own after 4–14
+  minutes, so their result is their own stop-early baseline. The reward measures warrior
+  strength, not effort; what it shows is that more minutes do not buy these agents
+  strength. FAILURES.md reads this as the plateau it is.
 - **What remains to run.**
-  - A Harbor + OpenCode run log is the first thing to add; see RUN_HARBOR.md.
+  - More Harbor + OpenCode runs, and a non-Claude model; see RUN_HARBOR.md.
   - The small-model training (TRAINING.md) is built and CPU-tested, but needs a GPU.

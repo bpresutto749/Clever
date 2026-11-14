@@ -1,0 +1,39 @@
+# Real Harbor runs of `harbor/corewar-hill`
+
+Harbor 0.25.0, Docker Desktop on macOS arm64, egress control on, 14 November 2026. Each
+directory is an unmodified Harbor job directory, except that the local user name in paths was
+replaced by `USER` and OpenCode's internal git snapshots (`agent/opencode/xdg-data/opencode/snapshot`)
+were left out. No API key appears in any file.
+
+| directory | command | result |
+|---|---|---|
+| `oracle/` | `-a oracle` | reward 1.000 |
+| `nop/` | `-a nop` | reward 0.000 |
+| `opencode-opus-5.5-no-credit/` | `-a opencode -m anthropic/claude-opus-5-5 -k 1` | not a run: the API refused the first call (empty credit balance); no model output; not counted |
+| `opencode-opus-5.5-run1/` | same, `-k 1` | OC1 |
+| `opencode-opus-5.5-runs2-5/` | same, `-k 4` | OC2–OC5 |
+
+| run | trial directory | agent minutes | reward | hidden-hill score | cost |
+|---|---|---|---|---|---|
+| OC1 | `opencode-opus-5.5-run1/corewar-hill__mDmMtQB` | 4.1 | 0.739 | 0.398 | $0.50 |
+| OC2 | `opencode-opus-5.5-runs2-5/corewar-hill__FjYrU8F` | 13.6 | 0.736 | 0.397 | $0.39 |
+| OC3 | `opencode-opus-5.5-runs2-5/corewar-hill__yztouhA` | 5.8 | 0.732 | 0.396 | $0.57 |
+| OC4 | `opencode-opus-5.5-runs2-5/corewar-hill__63vBycW` | 4.4 | 0.632 | 0.362 | $0.52 |
+| OC5 | `opencode-opus-5.5-runs2-5/corewar-hill__bJ7ph5p` | 13.2 | 0.681 | 0.378 | $0.55 |
+
+Mean reward 0.704 (95% CI 0.65–0.76, t with 4 degrees of freedom). OC2–OC5 are numbered by
+the start of their agent phase. All five trials are flagged `NonZeroAgentExitCodeError`
+(OpenCode's `EPIPE` at start-up, exit code 1 after a normal `step_finish`); the verifier ran
+in every one.
+
+`final/run_OC1.red` … `run_OC5.red` are copies of the five scored submissions (`make eval` scores them).
+
+In each trial directory: `verifier/reward.txt` and `verifier/details.json` (the score),
+`artifacts/events.jsonl` and `artifacts/history/` (every battle and submission), and
+`agent/opencode.txt` (the full OpenCode event stream, including the agent's final report).
+
+Reproduce the trajectory table (`results/trajectories_harbor.md`):
+
+```bash
+make trajectories   # or: python3 exploits/trajectories.py --out trajectories_harbor $(cat runs/harbor/start_times.txt)
+```

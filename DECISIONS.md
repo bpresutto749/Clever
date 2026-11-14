@@ -80,7 +80,21 @@ The 10-warrior runs are kept as **version 2** (`runs/v2-small-pool/`). The headl
 - **D and E.** Killed at about 14 minutes by an API quota error. Kept in `runs/aborted/`
   and never scored on the hidden hill. They were replaced by D2 and E2 with identical
   instructions.
+- **The first Harbor + OpenCode attempt** (`runs/harbor/opencode-opus-5.5-no-credit/`).
+  The API refused its first model call (empty credit balance), so no model output exists.
+  The next five attempts (OC1, then OC2–OC5 in one `-k 4` job) are all counted.
 - **No run was discarded for its score.**
+
+## Added after the Harbor runs (no change to the environment)
+
+- **Five Harbor + OpenCode runs (OC1–OC5)** were added to the results with the task
+  exactly as shipped: same `harbor/corewar-hill`, instruction, verifier and anchor. All five
+  started after the Dwarf anchor was fixed. They are reported in full; nothing was rerun.
+- **`results/stop_early.md` and `results/stop_early_v2.md` were regenerated.** They still
+  held imp-anchor rewards from before the zero-point change; the Dwarf-anchor values were
+  already in `results/rescored_dwarf_anchor.md`, and the regenerated files now match them.
+- **`exploits/trajectories.py` accepts `LABEL=DIR:START`**, so Harbor trial directories
+  (all named `artifacts`) get readable labels. The scoring is unchanged.
 
 ## Open choices we considered and rejected
 

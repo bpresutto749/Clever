@@ -82,6 +82,69 @@
    ]
   }
  },
+ "harbor-opencode-opus-5.5": {
+  "rows": [
+   {
+    "file": "runs/harbor/final/run_OC1.red",
+    "length": 14,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.398,
+    "reward": 0.7388,
+    "hill_se": 0.0027,
+    "reward_se": 0.008
+   },
+   {
+    "file": "runs/harbor/final/run_OC2.red",
+    "length": 13,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.397,
+    "reward": 0.7357,
+    "hill_se": 0.0025,
+    "reward_se": 0.0074
+   },
+   {
+    "file": "runs/harbor/final/run_OC3.red",
+    "length": 12,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3958,
+    "reward": 0.7321,
+    "hill_se": 0.0024,
+    "reward_se": 0.0071
+   },
+   {
+    "file": "runs/harbor/final/run_OC4.red",
+    "length": 14,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3618,
+    "reward": 0.632,
+    "hill_se": 0.0027,
+    "reward_se": 0.008
+   },
+   {
+    "file": "runs/harbor/final/run_OC5.red",
+    "length": 12,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3785,
+    "reward": 0.6811,
+    "hill_se": 0.0024,
+    "reward_se": 0.0071
+   }
+  ],
+  "summary": {
+   "n": 5,
+   "mean": 0.7039,
+   "sd": 0.0467,
+   "ci95": [
+    0.6459,
+    0.762
+   ]
+  }
+ },
  "v2-small-pool-opus-5.5": {
   "rows": [
    {
@@ -317,11 +380,9 @@
     "file": "baselines/dwarf.red",
     "length": 4,
     "valid": true,
-    "copy_of": null,
-    "hill_score": 0.1475,
-    "reward": 0.0,
-    "hill_se": 0.0023,
-    "reward_se": 0.0068
+    "copy_of": "dwarf",
+    "hill_score": 0.0,
+    "reward": 0.0
    },
    {
     "file": "baselines/imp.red",

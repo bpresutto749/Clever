@@ -35,14 +35,17 @@ variant: `-p harbor/corewar-hill-public`. See EXPLOITS.md for what that variant 
 |---|---|
 | `verifier/reward.txt` | the reward, one number in [0, 1] |
 | `verifier/details.json` | the raw hill score, the unclipped reward, the closest published warrior, and wins / losses / ties per hidden-hill opponent |
-| `artifacts/results/events.jsonl` | every battle and submission the agent made, with timestamps |
-| `artifacts/results/history/` | the source of every accepted submission |
-| `agent/` | the OpenCode trajectory |
+| `artifacts/events.jsonl` | every battle and submission the agent made, with timestamps |
+| `artifacts/history/` | the source of every accepted submission |
+| `artifacts/submission.red`, `artifacts/app_submission.red` | the MCP submission and the `/app` fallback |
+| `agent/opencode.txt`, `agent/trajectory.json` | the OpenCode trajectory |
+| `result.json` | reward, token counts, cost, and the start and end of each phase |
 
 To score every submission of a run on both the visible pool and the hidden hill:
 
 ```bash
-python3 exploits/trajectories.py --spar data/sparring --out my_run <trial>/artifacts/results:<start epoch>
+python3 exploits/trajectories.py --spar data/sparring --out my_run <trial>/artifacts:<start epoch>
+# <start epoch> = result.json agent_execution.started_at, as Unix seconds
 ```
 
 That table is how FAILURES.md shows the visible score rising while the hidden score does
