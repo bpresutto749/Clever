@@ -130,3 +130,15 @@ Nothing was rerun or selected after seeing the result.
 | A top-heavy hill (the 30 strongest warriors) | It might widen the gap, but choosing it after seeing results would be selection on the test set. |
 | A whitelist entry so the reference passes a whole-corpus gate | It would be a special case only the oracle could use. |
 | An LLM-evolved reference, Digital Red Queen style | Not reproducible within the event. The human expert is also the more meaningful bar. |
+
+## pMARS: one-entry overflow fixed (14 November 2026, after all runs)
+
+Building pMARS with clang for the Mac training run exposed a bug in `pmars/clparse.c`: the
+command-line option table (`OPTNUM` 21) was one entry short, so the last option written
+overflowed into the next static variable. gcc builds (every score in this repository, and the
+Harbor verifier's) placed something harmless there; a clang build overwrote `useExtRNG` and
+crashed. `OPTNUM` is now 32, and `-Dround=pmars_round` avoids the clash between pMARS's global
+`round` and the C library's `round()` under clang. Same outputs before and after, gcc and
+clang: the reference against Blizzard (200 rounds, fixed series) gives 46/7/147 with the old
+gcc build, the new gcc build and the clang build; run C5 against Blizzard at `-F 7253` gives
+0/70/30 with all three. The Harbor task directory picks the fix up at the next `make task`.
