@@ -4,7 +4,8 @@
 with `harbor run -p harbor/corewar-hill -a opencode -m <provider/model>` (RUN_HARBOR.md)*
 
 **Videos:** [presentation, 3 min 53](media/corewar_explainer.mp4) ·
-[demo of one real run, 2 min 54](media/corewar_demo.mp4) (how they are made: video/README.md)
+[demo of one real run, 2 min 54](media/corewar_demo.mp4) ·
+[both in one, 6 min 22](media/corewar_pitch.mp4) (how they are made: video/README.md)
 
 **Headline.** On the shipped task, through `harbor run` + OpenCode, Claude Opus 5.5 scores
 **0.713** (5 runs, all ≤ 0.741, 95% CI 0.67–0.75) against **1.000** for the human reference

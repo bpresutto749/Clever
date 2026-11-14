@@ -7,6 +7,7 @@ screen comes from this repository; nothing is filmed or hand-edited.
 |---|---|---|
 | [`media/corewar_explainer.mp4`](../media/corewar_explainer.mp4) | 3 min 53 | the test we want, the game, why it works as a test, what we found, why the score can be trusted |
 | [`media/corewar_demo.mp4`](../media/corewar_demo.mp4) | 2 min 54 | one real `harbor run` + OpenCode run (C5), replayed from its logs: the test, the run, the result, why the gap |
+| [`media/corewar_pitch.mp4`](../media/corewar_pitch.mp4) | 6 min 22 | both in one: the presentation's structure, with the demo's run, scores and game inside it |
 
 ## Where the numbers come from
 
@@ -26,6 +27,7 @@ screen comes from this repository; nothing is filmed or hand-edited.
 | `style.py` | palette, fonts, easing, panels, the judging-criteria rail, the memory background, `render()` |
 | `explainer.py` | the presentation video, one function per scene |
 | `demo.py` | the demo video, one function per scene |
+| `pitch.py` | the combined video: reuses both, redraws the demo's scenes in the presentation's frame |
 | `mars.py` | the simulator that replays one game for the demo |
 | `check_mars.py` | checks `mars.py` against pMARS |
 | `build.py` | renders every scene and joins them into `media/` |
