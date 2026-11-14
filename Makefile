@@ -7,7 +7,7 @@ STOP_EARLY_RUNS_V2 = $(shell cat runs/v2-small-pool/start_times.txt 2>/dev/null)
 HARBOR_RUNS = $(shell cat runs/harbor/start_times.txt 2>/dev/null)
 HARBOR_RUNS_V4 = $(shell cat runs/harbor/start_times_v4.txt 2>/dev/null)
 
-.PHONY: all pmars task lint test eval baselines exploits trajectories overfit harbor-reference harbor-nop harbor-agent harbor-all clean
+.PHONY: all pmars task lint test eval baselines exploits trajectories overfit videos harbor-reference harbor-nop harbor-agent harbor-all clean
 
 all: pmars task test eval
 
@@ -72,3 +72,8 @@ harbor-all: harbor-reference harbor-nop harbor-agent
 clean:
 	$(MAKE) -C pmars clean
 	rm -rf harbor
+
+# The presentation and demo videos (video/README.md): every scene, then joined into media/
+videos: pmars
+	$(PY) video/check_mars.py
+	$(PY) video/build.py all
