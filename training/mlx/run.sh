@@ -24,7 +24,7 @@ step() { echo; echo "=== $(date +%H:%M:%S) $*"; }
 die() { echo "FAILED: $*"; exit 1; }
 cat > "$OUT/config.json" <<EOF
 {"model": "$MODEL", "rounds": $ROUNDS, "samples_per_round": $N, "eval_samples": $NEVAL, "keep_top_per_archetype": $TOP,
- "lora": "mlx_lm defaults (rank 8, scale 20), 16 layers, lr $LR, 2 epochs, batch 4, fresh from the base model each round",
+ "lora": "mlx_lm defaults (rank 8, scale 20), 16 layers, lr $LR, 2 epochs (at least 20 steps), batch 4, fresh from the base model each round",
  "temperature": 0.9, "top_p": 0.95, "train_rounds_per_opponent": 50, "eval_rounds_per_opponent": 100}
 EOF
 
@@ -49,10 +49,11 @@ for r in $(seq 0 "$ROUNDS"); do
   [ "$r" = "$ROUNDS" ] && break
   step "round $r: select (top $TOP per archetype, all rounds so far)"
   $PY training/mlx/pick.py "$OUT"/r*.train.jsonl --top "$TOP" --out "$OUT/sft_r$r/train.jsonl" || die "selection r$r"
-  K=$(wc -l < "$OUT/sft_r$r/train.jsonl"); ITERS=$(( (2 * K + 3) / 4 )); [ "$ITERS" -lt 20 ] && ITERS=20
+  K=$(wc -l < "$OUT/sft_r$r/train.jsonl" | tr -d ' '); [ "$K" -gt 0 ] || die "nothing to train on in round $r"
+  BS=$(( K < 4 ? K : 4 )); ITERS=$(( (2 * K + BS - 1) / BS )); [ "$ITERS" -lt 20 ] && ITERS=20
   step "round $r: LoRA on $K samples, $ITERS iterations"
   $PY -m mlx_lm lora --model "$MODEL" --train --data "$OUT/sft_r$r" --adapter-path "$OUT/adapter_r$((r + 1))" \
-    --iters "$ITERS" --batch-size 4 --num-layers 16 --learning-rate "$LR" --mask-prompt --max-seq-length 2048 \
+    --iters "$ITERS" --batch-size "$BS" --num-layers 16 --learning-rate "$LR" --mask-prompt --max-seq-length 2048 \
     --grad-checkpoint --steps-per-report 10 --steps-per-eval 100000 --save-every 100000 --seed "$r" || die "LoRA r$r"
   ADAPTER="$OUT/adapter_r$((r + 1))"
 done
