@@ -6,7 +6,8 @@ COPY pmars /srv/pmars
 RUN make -C /srv/pmars pmars
 COPY arena /srv/arena
 COPY data /srv/data
+RUN chmod -R a+rX /srv
 ENV PYTHONPATH=/srv
-RUN mkdir -p /results && touch /results/submission.red /results/events.jsonl
+RUN mkdir -p /results/history && touch /results/submission.red /results/events.jsonl
 EXPOSE 8000
 CMD ["python", "-m", "arena.mcp_server"]

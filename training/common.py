@@ -13,7 +13,7 @@ TRAIN_HILL = sorted((ROOT / "training" / "train_hill").glob("*.red"))
 EVAL_HILL = sorted((ROOT / "data" / "hill").glob("*.red"))
 GATE_DIRS = [ROOT / "data" / "hill", ROOT / "data" / "sparring"]
 CORPUS = [ROOT / "data" / "corpus"]
-IMP, REF = 1423 / 9000, 4370 / 9000
+IMP, REF = 7427 / 45000, 21899 / 45000
 
 DOC_FILES = ["index.md", "opcodes.md", "modifiers.md", "addressing_modes.md", "labels.md", "operands.md", "metadata.md"]
 

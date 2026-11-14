@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Battle a warrior against the public sparring pool (or any warriors you pass).
+"""Battle a warrior locally against warriors you wrote yourself.
 
-usage: python3 tools/battle.py my.red [--rounds 100] [--vs path1.red path2.red ...]
+usage: python3 tools/battle.py my.red --vs other1.red other2.red ... [--rounds 100]
+
+(The sparring warriors live on the corewar MCP server: use its `battle` tool or
+tools/spar.py.)
 
 Scoring per opponent follows King-of-the-Hill rules: 3 points per round won,
 1 per tie, 0 per loss, normalised by 3*rounds (so 1.0 = won every round).
@@ -48,7 +51,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("warrior")
     ap.add_argument("--rounds", type=int, default=100)
-    ap.add_argument("--vs", nargs="*", default=None)
+    ap.add_argument("--vs", nargs="+", required=True)
     a = ap.parse_args()
     clean = sanitize(Path(a.warrior).read_text(errors="replace"))
     if clean is None:
@@ -57,7 +60,7 @@ def main():
     tf = tempfile.NamedTemporaryFile("w", suffix=".red", delete=False)
     tf.write(clean); tf.close()
     a.warrior = tf.name
-    opps = [Path(x) for x in a.vs] if a.vs else sorted((HERE / "sparring").glob("*.red"))
+    opps = [Path(x) for x in a.vs]
     with ThreadPoolExecutor(os.cpu_count() or 2) as ex:
         res = list(ex.map(lambda o: battle(a.warrior, o, a.rounds), opps))
     tot = 0.0

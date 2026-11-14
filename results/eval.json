@@ -6,8 +6,10 @@
     "length": 100,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.4856,
-    "reward": 1.0
+    "hill_score": 0.4866,
+    "reward": 1.0,
+    "hill_se": 0.0025,
+    "reward_se": 0.0078
    }
   ],
   "summary": {
@@ -24,49 +26,59 @@
     "length": 14,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.396,
-    "reward": 0.7265
+    "hill_score": 0.375,
+    "reward": 0.653,
+    "hill_se": 0.0033,
+    "reward_se": 0.0103
    },
    {
     "file": "runs/opus-5.5/run_B.red",
     "length": 65,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.3731,
-    "reward": 0.6566
+    "hill_score": 0.3718,
+    "reward": 0.6428,
+    "hill_se": 0.0033,
+    "reward_se": 0.0103
    },
    {
     "file": "runs/opus-5.5/run_C.red",
     "length": 79,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.3963,
-    "reward": 0.7275
+    "hill_score": 0.3913,
+    "reward": 0.7036,
+    "hill_se": 0.0032,
+    "reward_se": 0.01
    },
    {
     "file": "runs/opus-5.5/run_D2.red",
     "length": 65,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.4624,
-    "reward": 0.9294
+    "hill_score": 0.4651,
+    "reward": 0.9331,
+    "hill_se": 0.0037,
+    "reward_se": 0.0115
    },
    {
     "file": "runs/opus-5.5/run_E2.red",
     "length": 12,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.3967,
-    "reward": 0.7285
+    "hill_score": 0.3986,
+    "reward": 0.7263,
+    "hill_se": 0.0025,
+    "reward_se": 0.0078
    }
   ],
   "summary": {
    "n": 5,
-   "mean": 0.7537,
-   "sd": 0.1029,
+   "mean": 0.7318,
+   "sd": 0.1178,
    "ci95": [
-    0.6258,
-    0.8816
+    0.5853,
+    0.8782
    ]
   }
  },
@@ -77,13 +89,15 @@
     "length": 40,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.3872,
-    "reward": 0.6997
+    "hill_score": 0.3903,
+    "reward": 0.7003,
+    "hill_se": 0.0032,
+    "reward_se": 0.01
    }
   ],
   "summary": {
    "n": 1,
-   "mean": 0.6997,
+   "mean": 0.7003,
    "sd": null,
    "ci95": null
   }
@@ -95,13 +109,15 @@
     "length": 5,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.2028,
-    "reward": 0.1364
+    "hill_score": 0.1951,
+    "reward": 0.0934,
+    "hill_se": 0.0023,
+    "reward_se": 0.0072
    }
   ],
   "summary": {
    "n": 1,
-   "mean": 0.1364,
+   "mean": 0.0934,
    "sd": null,
    "ci95": null
   }
@@ -113,41 +129,49 @@
     "length": 12,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.3388,
-    "reward": 0.5517
+    "hill_score": 0.3265,
+    "reward": 0.5021,
+    "hill_se": 0.0024,
+    "reward_se": 0.0075
    },
    {
     "file": "runs/codeclash-ladder-2026-07/gpt-5-5.red",
     "length": 11,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.3357,
-    "reward": 0.5422
+    "hill_score": 0.3316,
+    "reward": 0.518,
+    "hill_se": 0.0028,
+    "reward_se": 0.0087
    },
    {
     "file": "runs/codeclash-ladder-2026-07/opus-4-8.red",
     "length": 18,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.1401,
-    "reward": 0.0
+    "hill_score": 0.1402,
+    "reward": 0.0,
+    "hill_se": 0.002,
+    "reward_se": 0.0062
    },
    {
     "file": "runs/codeclash-ladder-2026-07/sonnet-5.red",
     "length": 48,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.0771,
-    "reward": 0.0
+    "hill_score": 0.0828,
+    "reward": 0.0,
+    "hill_se": 0.0019,
+    "reward_se": 0.0059
    }
   ],
   "summary": {
    "n": 4,
-   "mean": 0.2735,
-   "sd": 0.3158,
+   "mean": 0.255,
+   "sd": 0.2945,
    "ci95": [
-    -0.2287,
-    0.7756
+    -0.2133,
+    0.7234
    ]
   }
  },
@@ -159,31 +183,39 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.0,
-    "reward": 0.0
+    "reward": 0.0,
+    "hill_se": 0.0,
+    "reward_se": 0.0
    },
    {
     "file": "baselines/dwarf.red",
     "length": 4,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.142,
-    "reward": 0.0
+    "hill_score": 0.1475,
+    "reward": 0.0,
+    "hill_se": 0.0023,
+    "reward_se": 0.0072
    },
    {
     "file": "baselines/imp.red",
     "length": 1,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.1581,
-    "reward": 0.0
+    "hill_score": 0.165,
+    "reward": 0.0,
+    "hill_se": 0.0013,
+    "reward_se": 0.004
    },
    {
     "file": "baselines/loop_jmp.red",
     "length": 1,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.0172,
-    "reward": 0.0
+    "hill_score": 0.0181,
+    "reward": 0.0,
+    "hill_se": 0.0004,
+    "reward_se": 0.0012
    },
    {
     "file": "baselines/nothing_dat.red",
@@ -191,48 +223,58 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.0,
-    "reward": 0.0
+    "reward": 0.0,
+    "hill_se": 0.0,
+    "reward_se": 0.0
    },
    {
     "file": "baselines/scanner_basic.red",
     "length": 8,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.0686,
-    "reward": 0.0
+    "hill_score": 0.0688,
+    "reward": 0.0,
+    "hill_se": 0.0019,
+    "reward_se": 0.0059
    },
    {
     "file": "baselines/silk_paper.red",
     "length": 8,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.16,
-    "reward": 0.0058
+    "hill_score": 0.1623,
+    "reward": 0.0,
+    "hill_se": 0.0022,
+    "reward_se": 0.0068
    },
    {
     "file": "baselines/spl_flood.red",
     "length": 2,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.014,
-    "reward": 0.0
+    "hill_score": 0.0135,
+    "reward": 0.0,
+    "hill_se": 0.0005,
+    "reward_se": 0.0016
    },
    {
     "file": "baselines/stone_spl.red",
     "length": 5,
     "valid": true,
     "copy_of": null,
-    "hill_score": 0.2284,
-    "reward": 0.2148
+    "hill_score": 0.2278,
+    "reward": 0.195,
+    "hill_se": 0.0025,
+    "reward_se": 0.0078
    }
   ],
   "summary": {
    "n": 9,
-   "mean": 0.0245,
-   "sd": 0.0714,
+   "mean": 0.0217,
+   "sd": 0.065,
    "ci95": [
-    -0.0305,
-    0.0795
+    -0.0284,
+    0.0717
    ]
   }
  }

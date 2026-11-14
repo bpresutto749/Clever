@@ -20,11 +20,36 @@ gap was not tuned after the fact.
 
 | change | effect on the comparison |
 |---|---|
-| **Rounds per opponent: 60 → 100.** Runs A–C were told 60. | Deterministic either way; only the precision of the estimate changes. All numbers in this repo use 100. |
+| **Rounds per opponent: 60 → 100.** Runs A–C were told 60. | Deterministic either way; only the precision of the estimate changes. Later raised to 500 (next section); all numbers in this repo now use 500. |
 | **Reward rescaled.** `(hill − imp) / (reference − imp)` instead of the raw hill score. | An affine map: no ranking or gap test changes. We did it because a one-line imp collects 0.158 raw from ties, which would make "simple strategies earn little" hard to read. |
 | **Copy gate: false positive fixed.** The first gate flagged run B's original warrior as a "copy". Its 40 decoy lines happened to contain the opcode pattern of a short published warrior. | Structural containment was removed. Exact containment was kept. |
 | **Copy gate: scope narrowed.** It now zeroes only copies of hill or sparring warriors, and only reports the rest of the 581-warrior corpus. | The reference itself is a near-relative of another published warrior (Mercenary, similarity 0.88). A whole-corpus gate would have needed a whitelist for it (see EXPLOITS.md). |
 | **Hill selection rule removed from the agent instruction.** | With internet access, an agent could otherwise reconstruct the hidden hill from the public ladder. |
+
+## Changed after the first adversarial review (35/100), before the final runs
+
+A fresh critic agent broke version 1. Every fix below is covered by a regression case in
+`make exploits` or `make test`.
+
+| finding | fix |
+|---|---|
+| **Fatal.** Harbor re-creates artifacts in a separate verifier at their *source* path. The verifier looked under `/logs/artifacts`, so every submission, the oracle's included, would have scored 0. | Read `/results/submission.red`, then `/app/submission.red`. Never read `/logs/artifacts`, which the agent can write. |
+| pMARS predefines `WARRIORS` and `ROUNDS`. A source could assemble as an imp for the copy check and as Halcyon in battle: reward 1.25. | Every check now uses the listing from the exact scoring context. |
+| Lightly edited sparring warriors passed the gate (padding removed, one constant changed: rewards 1.04–1.19). 6 of the 10 sparring warriors beat the reference on the hill. | The sparring pool became **black boxes** (ids only, no source, no names). The gate also removes padding and uses contiguous-run containment. |
+| The agent phase had public network access, and 6 public warriors not on the hill beat the reference. | Agent phase on an **allowlist** (sidecar + model APIs; extend with `--allow-agent-host`). |
+| At 100 rounds, a cosmetic edit that re-draws the `-f` position series moved D2 by up to 0.05 in reward. | **500 rounds** per opponent. The standard error is reported for every score (about ±0.01 in reward). The anchors were recomputed at 500 rounds: imp 0.1650, reference 0.4866. |
+| F3 ("the gap concentrates on imp-based opponents") was not supported by the data. | Claim removed. |
+| `reward.json` carried non-reward keys, which Harbor aggregates. | Only `reward` and `hill_score` remain; everything else is in `details.json`. |
+
+**What changed for the agent.**
+- Sparring warriors became black boxes, reached through MCP or `tools/spar.py`.
+- A short public strategy primer (`doc/strategy_primer.md`) was added, so that the
+  difficulty cannot be put down to withheld community knowledge.
+- Scoring moved to 500 rounds.
+
+Because the agent's environment changed, the headline numbers come from **new runs in the
+final environment** (`runs/final-env/`). Runs A–E2 and G (`runs/opus-5.5*`) were made in
+version 1 and are kept as earlier evidence, rescored at 500 rounds.
 
 ## Runs excluded
 

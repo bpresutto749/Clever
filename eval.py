@@ -23,7 +23,7 @@ from arena import core  # noqa: E402
 
 HILL = sorted((ROOT / "data" / "hill").glob("*.red"))
 GATE = [ROOT / "data" / "hill", ROOT / "data" / "sparring"]
-IMP, REF = 1423 / 9000, 4370 / 9000
+IMP, REF = 7427 / 45000, 21899 / 45000
 T95 = {1: 12.71, 2: 4.30, 3: 3.18, 4: 2.78, 5: 2.57, 6: 2.45, 7: 2.36, 8: 2.31, 9: 2.26, 10: 2.23}
 
 
@@ -37,9 +37,20 @@ def score_file(path):
         if gate["copy"]:
             row["copy_of"] = gate["warrior"]
         else:
-            s = core.hill_score(core.play_hill(src, HILL))
+            res = core.play_hill(src, HILL)
+            s = core.hill_score(res)
             row["hill_score"] = round(s, 4)
             row["reward"] = round(max(0.0, (s - IMP) / (REF - IMP)), 4)
+            # start-position luck: standard error of the hill score if the rounds of each
+            # battle were independent random draws (per-round points 1, 1/3 or 0)
+            var = 0.0
+            for r in res:
+                n = r.rounds
+                m = r.points
+                ex2 = (r.wins * 1.0 + r.ties * (1 / 9)) / n
+                var += (ex2 - m * m) / n
+            row["hill_se"] = round(math.sqrt(var) / len(res), 4)
+            row["reward_se"] = round(row["hill_se"] / (REF - IMP), 4)
     return row
 
 
@@ -67,7 +78,9 @@ def main():
         out[name] = {"rows": rows, "summary": summary([r["reward"] for r in rows]) if rows else None}
         for r in rows:
             note = "does not assemble" if not r["valid"] else (f"near-copy of {r['copy_of']}" if r["copy_of"] else "")
-            md.append(f"| {name} | {Path(r['file']).name} | {r['length']} | {r['hill_score']:.3f} | {r['reward']:.3f} | {note} |")
+            se = f" ± {r['hill_se']:.3f}" if r.get("hill_se") is not None else ""
+            rse = f" ± {r['reward_se']:.3f}" if r.get("reward_se") is not None else ""
+            md.append(f"| {name} | {Path(r['file']).name} | {r['length']} | {r['hill_score']:.3f}{se} | {r['reward']:.3f}{rse} | {note} |")
             print(f"{name:18s} {Path(r['file']).name:28s} len {r['length']:3d}  hill {r['hill_score']:.3f}  reward {r['reward']:.3f}  {note}", flush=True)
         if rows:
             print(f"{name:18s} SUMMARY {out[name]['summary']}", flush=True)

@@ -2,16 +2,17 @@
 
 Tools (streamable HTTP on :8000/mcp):
   get_rules()                  - the scoring rules and settings
-  list_sparring()              - names of the public sparring warriors
-  get_sparring(name)           - source of one sparring warrior
+  list_sparring()              - ids of the sparring warriors (s01..s10)
   battle(source, opponents, rounds) - play a warrior against sparring warriors
   battle_custom(source, opponent_source, rounds) - play two sources of your own
   submit(source)               - set your final submission (last accepted one counts)
   status()                     - what is currently submitted
 
-The hidden hill never enters this container: the verifier scores the submission
-in its own container. This service only keeps the submission and its history
-under /results, which Harbor collects as an artifact after the run.
+The sparring warriors are black boxes: the agent can battle them but never sees
+their source or their names (so it cannot copy them, or recall or download them
+by name). The hidden hill never enters this container: the verifier scores the
+submission in its own container. This service keeps the submission and an event
+log under /results, which Harbor collects as artifacts after the run.
 """
 from __future__ import annotations
 
@@ -44,7 +45,8 @@ mcp = FastMCP(
 
 
 def _sparring():
-    return sorted(SPARRING.glob("*.red"))
+    """(public id, path) pairs; ids are assigned in file-name order."""
+    return [(f"s{i:02d}", p) for i, p in enumerate(sorted(SPARRING.glob("*.red")), 1)]
 
 
 def _log(event: dict):
@@ -62,33 +64,29 @@ def get_rules() -> str:
 
 @mcp.tool()
 def list_sparring() -> str:
-    """Names of the 10 public sparring warriors (none of them is on the hidden hill)."""
-    return "\n".join(p.stem for p in _sparring())
-
-
-@mcp.tool()
-def get_sparring(name: str) -> str:
-    """Redcode source of one sparring warrior."""
-    for p in _sparring():
-        if p.stem == name:
-            return p.read_text(errors="replace")
-    return f"unknown sparring warrior {name!r}; call list_sparring"
+    """Ids of the 10 sparring warriors (none of them is on the hidden hill). Their
+    source code is not available; play them with `battle`."""
+    return "\n".join(i for i, _ in _sparring())
 
 
 @mcp.tool()
 def battle(source: str, opponents: list[str] | None = None, rounds: int = 100) -> str:
     """Play your warrior (Redcode source) against sparring warriors (all of them by
-    default) with the scoring settings. Returns wins/losses/ties and KotH points."""
+    default, or a list of ids like ["s01", "s07"]) with the scoring settings.
+    Returns wins/losses/ties and KotH points per opponent (1.0 = every round won)."""
     rounds = max(1, min(int(rounds), MAX_ROUNDS))
-    opps = [p for p in _sparring() if not opponents or p.stem in set(opponents)]
-    if not opps:
+    want = set(opponents or [])
+    pairs = [(i, p) for i, p in _sparring() if not want or i in want]
+    if not pairs:
         return "no such sparring warrior; call list_sparring"
-    ins, msgs = core.assemble(source)
+    ins, msgs = core.assemble(source, rounds)
     if not ins:
         return "does not assemble:\n" + msgs
-    res = core.play_hill(source, opps, rounds)
+    res = core.play_hill(source, [p for _, p in pairs], rounds)
+    for (i, _), r in zip(pairs, res):
+        r.opponent = i
     _log({"event": "battle", "sha": hashlib.sha256(source.encode()).hexdigest()[:16],
-          "opponents": [o.stem for o in opps], "rounds": rounds, "mean": core.hill_score(res)})
+          "opponents": [i for i, _ in pairs], "rounds": rounds, "mean": core.hill_score(res)})
     return core.table(res)
 
 
@@ -97,7 +95,7 @@ def battle_custom(source: str, opponent_source: str, rounds: int = 100) -> str:
     """Play two warriors of your own against each other (e.g. a new version against an old one)."""
     rounds = max(1, min(int(rounds), MAX_ROUNDS))
     for s in (source, opponent_source):
-        ins, msgs = core.assemble(s)
+        ins, msgs = core.assemble(s, rounds)
         if not ins:
             return "does not assemble:\n" + msgs
     with core.Source(source) as a, core.Source(opponent_source) as b:
@@ -116,14 +114,18 @@ def submit(source: str) -> str:
             return "rejected: does not assemble\n" + msgs
         cp = core.nearest_published(ins, [SPARRING])
         if cp["copy"]:
-            _log({"event": "submit", "accepted": False, "reason": f"near-copy of {cp['warrior']}"})
-            return f"rejected: near-copy of sparring warrior {cp['warrior']}"
+            _log({"event": "submit", "accepted": False, "reason": "near-copy of a sparring warrior"})
+            return "rejected: near-copy of a sparring warrior"
         RESULTS.mkdir(parents=True, exist_ok=True)
         tmp = RESULTS / "submission.red.tmp"
         tmp.write_text(source)
         tmp.replace(RESULTS / "submission.red")
         sha = hashlib.sha256(source.encode()).hexdigest()[:16]
-        _log({"event": "submit", "accepted": True, "sha": sha, "length": len(ins)})
+        hist = RESULTS / "history"
+        hist.mkdir(exist_ok=True)
+        n = len(list(hist.glob("*.red"))) + 1
+        (hist / f"{n:03d}_{sha}.red").write_text(source)
+        _log({"event": "submit", "accepted": True, "sha": sha, "length": len(ins), "history": f"{n:03d}_{sha}.red"})
         return f"accepted ({len(ins)} instructions, sha {sha}). This is now your final submission."
 
 

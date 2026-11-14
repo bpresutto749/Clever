@@ -29,10 +29,10 @@ def test_reference_is_elo_number_one():
 
 def test_reward_anchors_match_the_simulator():
     verify = (ROOT / "task_src" / "verify.py").read_text()
-    assert "IMP = 1423 / 9000" in verify and "REF = 4370 / 9000" in verify
-    # 30 opponents x 100 rounds x 3 points = 9000: scores are exact multiples of 1/9000
-    assert round(core.hill_score(core.play_hill(IMP, HILL)) * 9000) == 1423
-    assert round(core.hill_score(core.play_hill(REF, HILL)) * 9000) == 4370
+    assert "IMP = 7427 / 45000" in verify and "REF = 21899 / 45000" in verify
+    # 30 opponents x 500 rounds x 3 points = 45000: scores are exact multiples of 1/45000
+    assert round(core.hill_score(core.play_hill(IMP, HILL)) * 45000) == 7427
+    assert round(core.hill_score(core.play_hill(REF, HILL)) * 45000) == 21899
 
 
 def test_scores_are_deterministic():
@@ -57,10 +57,30 @@ def test_copy_gate_catches_sparring_and_hill_copies_but_not_originals():
         assert not core.nearest_published(ins, [ROOT / "data" / "hill", ROOT / "data" / "sparring"])["copy"], p
 
 
-def test_task_dir_keeps_hidden_hill_out_of_agent_images():
+def test_task_keeps_hill_and_sparring_source_out_of_the_agent_image():
+    import subprocess
+    subprocess.run([sys.executable, str(ROOT / "build_task.py")], check=True, capture_output=True)
     task = ROOT / "harbor" / "corewar-hill"
-    if not task.exists():
-        return
     env_files = {p.name for p in (task / "environment").rglob("*.red")}
     assert not env_files & {p.name for p in HILL}
+    dockerfile = (task / "environment" / "Dockerfile").read_text()
+    assert "sparring" not in dockerfile.replace("sparring warriors' source", "")
     assert (task / "tests" / "data" / "hill").exists()
+    toml = (task / "task.toml").read_text()
+    assert 'network_mode = "allowlist"' in toml and '"arena"' in toml
+
+
+def test_assembly_uses_the_battle_context():
+    # a source that is an imp when assembled alone and something else in a 2-warrior battle
+    src = ";redcode-94\nfor (2-WARRIORS)\n        mov.i #0, 1\nrof\nfor (WARRIORS-1)\n        spl #0, #0\n        jmp -1\nrof\n"
+    ins, _ = core.assemble(src)
+    assert ins == ["SPL.B #0,#0", "JMP.B $-1,$0"], ins
+
+
+def test_padding_and_retuning_do_not_escape_the_gate():
+    gate = [ROOT / "data" / "hill", ROOT / "data" / "sparring"]
+    for f in sorted((ROOT / "exploits" / "cases").glob("*.red")):
+        if f.name.startswith("d2_"):
+            continue
+        ins = core.assemble(f.read_text())[0]
+        assert core.nearest_published(ins, gate)["copy"], f.name

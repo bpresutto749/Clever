@@ -2,6 +2,7 @@ PY ?= python3
 HARBOR ?= harbor
 MODEL ?= anthropic/claude-opus-5-5
 TASK = harbor/corewar-hill
+STOP_EARLY_RUNS = $(shell cat runs/final-env/start_times.txt 2>/dev/null)
 
 .PHONY: all pmars task lint test eval baselines exploits harbor-reference harbor-nop harbor-agent harbor-all clean
 
@@ -25,9 +26,10 @@ test: pmars
 eval: pmars
 	$(PY) eval.py --markdown results/eval.md --json results/eval.json \
 	  "reference=data/reference_toxic.red" \
-	  "opus-5.5=runs/opus-5.5/*.red" \
-	  "opus-5.5-lessons=runs/opus-5.5-lessons/*.red" \
-	  "sonnet-5.5=runs/sonnet-5.5/*.red" \
+	  "final-env-opus-5.5=runs/final-env/opus-5.5/*.red" \
+	  "v1-opus-5.5=runs/opus-5.5/*.red" \
+	  "v1-opus-5.5-lessons=runs/opus-5.5-lessons/*.red" \
+	  "v1-sonnet-5.5=runs/sonnet-5.5/*.red" \
 	  "codeclash-ladder-2026-07=runs/codeclash-ladder-2026-07/*.red" \
 	  "baselines=baselines/*.red"
 	@cat results/eval.md
@@ -35,6 +37,7 @@ eval: pmars
 # The exploit and simple-strategy sweep behind EXPLOITS.md
 exploits: pmars
 	$(PY) exploits/run_exploits.py
+	$(PY) exploits/stop_early.py $(STOP_EARLY_RUNS)
 
 # Harbor runs (need Docker). Judges' protocol: reference, do-nothing, 3+ agent runs.
 harbor-reference: task

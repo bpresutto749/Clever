@@ -10,6 +10,7 @@ import difflib
 import os
 import re
 import subprocess
+import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -20,7 +21,7 @@ PMARS = Path(os.environ.get("PMARS", Path(__file__).resolve().parent.parent / "p
 # Standard ICWS '94 hill settings (pMARS defaults): coresize 8000, 80000 cycles,
 # 8000 processes, max length 100, min distance 100.  -f uses pMARS's fixed
 # position series, so every score is exactly reproducible.
-ROUNDS = 100
+ROUNDS = 500                  # per opponent in the verifier (sidecar battles default to 100)
 BATTLE_TIMEOUT = 120          # seconds; a hung battle scores as a loss for the submission
 MAX_LINE = 200                # pMARS 0.9.4 hangs on source lines longer than ~256 chars
 MAX_SOURCE = 20000            # bytes
@@ -52,10 +53,27 @@ def _group_exists(name):
         return False
 
 
+_UNPRIVILEGED_OK = True
+
+
 def run_pmars(args, timeout):
-    kw = {k: v for k, v in _sim_kwargs().items() if v is not None}
-    return subprocess.run([str(PMARS), *args], capture_output=True, text=True, timeout=timeout,
-                          cwd="/tmp", **kw)
+    """Run pMARS, as `nobody` when we are root. If the unprivileged user cannot
+    reach the binary or the files (e.g. a 0700 temp dir in a local test), fall back
+    to the current user once and remember it, rather than scoring everything 0."""
+    global _UNPRIVILEGED_OK
+    cmd = [str(PMARS), *args]
+    if _UNPRIVILEGED_OK:
+        kw = {k: v for k, v in _sim_kwargs().items() if v is not None}
+        if kw:
+            try:
+                p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd="/tmp", **kw)
+                if not ("Permission denied" in p.stderr or "can't open" in p.stderr.lower()):
+                    return p
+            except PermissionError:
+                pass
+            _UNPRIVILEGED_OK = False
+            print("warning: pMARS cannot run as nobody here; running it as the current user", file=sys.stderr)
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd="/tmp")
 
 
 # ---------------------------------------------------------------- sanitising
@@ -100,55 +118,82 @@ class Source:
 
 
 # ---------------------------------------------------------------- assembling
-def assemble(text: str) -> tuple[list[str], str]:
-    """Assembled instructions (labels/comments removed) and pMARS's messages.
-    An empty list means the warrior does not assemble."""
-    with Source(text) as s:
+_DUMMY = ";redcode-94\n;name dummy\n        dat #0, #0\n"
+
+
+def assemble(text: str, rounds: int | None = None) -> tuple[list[str], str]:
+    """Assembled instructions of `text` (labels and comments removed) and pMARS's
+    messages. An empty list means the warrior does not assemble.
+
+    The warrior is assembled in exactly the context it is scored in: two warriors,
+    the same round count and the same settings. pMARS predefines WARRIORS, ROUNDS,
+    CORESIZE and friends for the preprocessor, so a source assembled alone with
+    `-r 0` can differ from the code that actually fights (e.g. `for (WARRIORS-1)`
+    blocks). The opponent is a one-line DAT, so each round ends at once."""
+    rounds = ROUNDS if rounds is None else rounds
+    with Source(text) as s, Source(_DUMMY) as d:
         if s.path is None:
             return [], f"invalid source: a code line is longer than {MAX_LINE} characters or the file exceeds {MAX_SOURCE} bytes"
         try:
-            p = run_pmars(["-r", "0", s.path], 30)
+            p = run_pmars(["-r", str(rounds), "-f", s.path, d.path], 60)
         except subprocess.TimeoutExpired:
             return [], "pMARS timed out while assembling"
     msgs = (p.stdout + p.stderr)
-    ins, started = [], False
+    ins, block = [], 0
     for line in p.stdout.splitlines():
         if line.startswith("Program "):
-            started = True
+            block += 1
             continue
-        if started:
-            m = re.search(r"([A-Z]{3}\.[A-Z]{1,2})\s+(.*)$", line.strip())
-            if m and not line.strip().startswith("ORG"):
+        if block == 1:
+            t = line.strip()
+            m = re.search(r"([A-Z]{3}\.[A-Z]{1,2})\s+(.*)$", t)
+            if m and not t.startswith("ORG"):
                 ins.append(m.group(1) + " " + re.sub(r"\s+", "", m.group(2)))
-    if "Error" in msgs or "error" in msgs.split("Program ")[0]:
-        if not ins:
-            return [], msgs.strip()[-1500:]
+    if block < 2:          # the submission did not assemble, so no listings were printed
+        return [], msgs.strip()[-1500:]
     return ins, msgs.strip()[-1500:]
 
 
 # ---------------------------------------------------------------- copy check
-def _ratio(a, b):
-    if not a or not b:
-        return 0.0
-    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
-    matched = sum(bl.size for bl in sm.get_matching_blocks())
-    contained = matched / min(len(a), len(b)) if min(len(a), len(b)) >= 6 else 0.0
-    return max(sm.ratio(), contained)
+EMPTY = "DAT.F $0,$0"           # identical to an empty core cell: padding, not code
+
+
+def _strip(ins):
+    return [x for x in ins if x != EMPTY]
 
 
 def _structure(ins):
     return [re.sub(r"-?\d+", "", x) for x in ins]
 
 
+def _block_containment(a, b, min_block):
+    """Share of the shorter sequence covered by contiguous common runs of at least
+    `min_block` instructions (order preserved)."""
+    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    covered = sum(bl.size for bl in sm.get_matching_blocks() if bl.size >= min_block)
+    return covered / min(len(a), len(b))
+
+
 def copy_match(ins: list[str], ref: list[str]) -> tuple[bool, float, float]:
-    """exact: instructions with constants; counts containment, so pasting a
-    published warrior inside a larger file is caught. struct: constants removed,
-    symmetric ratio only (containment on structure alone flags unrelated code,
-    e.g. a long decoy block that happens to contain a short warrior's opcodes)."""
-    exact = _ratio(ins, ref)
+    """Near-copy test on assembled code with empty-cell padding removed.
+
+    exact : instructions with their constants. max(ratio, containment), so a copy
+            pasted inside a bigger file is caught. Flag at >= 0.8.
+    struct: opcodes, modifiers and addressing modes, constants removed. max(ratio,
+            containment by contiguous runs of >= 3 instructions), for programs of
+            >= 8 instructions. Flag at >= 0.9. The contiguous-run requirement keeps
+            long random decoy blocks from "containing" a short warrior by chance."""
+    a, b = _strip(ins), _strip(ref)
+    if not a or not b:
+        return False, 0.0, 0.0
+    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    exact = sm.ratio()
+    if min(len(a), len(b)) >= 6:
+        exact = max(exact, _block_containment(a, b, 1))
     struct = 0.0
-    if min(len(ins), len(ref)) >= 8:
-        struct = difflib.SequenceMatcher(None, _structure(ins), _structure(ref), autojunk=False).ratio()
+    if min(len(a), len(b)) >= 8:
+        sa, sb = _structure(a), _structure(b)
+        struct = max(difflib.SequenceMatcher(None, sa, sb, autojunk=False).ratio(), _block_containment(sa, sb, 3))
     return (exact >= COPY_EXACT or struct >= COPY_STRUCT), exact, struct
 
 
