@@ -14,6 +14,8 @@ were left out. No API key appears in any file.
 | `opencode-opus-5.5-runs2-5/` | same, `-k 4` | OC2–OC5 |
 | `v4-oracle/` | v4 (clock added), `-a oracle` | reward 1.000 |
 | `v4-opencode-opus-5.5/` | v4, `-a opencode -m anthropic/claude-opus-5-5 -k 5` | C1–C5 |
+| `v4.1-oracle/` | v4.1 (copy-gate correction), `-a oracle` | reward 1.000 |
+| `v4.1-nop/` | v4.1, `-a nop` | reward 0.000 |
 
 | run | trial directory | agent minutes | reward | hidden-hill score | cost |
 |---|---|---|---|---|---|

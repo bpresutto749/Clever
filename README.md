@@ -103,6 +103,7 @@ logs in `runs/harbor/`):
 | `-a opencode -m anthropic/claude-opus-5-5 -k 4` (4 concurrent trials) | 0.736, 0.732, 0.681, 0.632 | 15 min 45 (agents 4.4–13.6 min) | $2.04 |
 | **v4** `-a oracle` | 1.000 | 39 s | — |
 | **v4** `-a opencode -m anthropic/claude-opus-5-5 -k 5` (4 concurrent, then 1) | 0.741, 0.740, 0.727, 0.692, 0.666 | 42 min 47 (agents 16.5–32.7 min) | $11.75 |
+| **v4.1** (as shipped) `-a oracle`; `-a nop` | 1.000; 0.000 | 49 s; 32 s | — |
 
 The first five agent rows are v3 (OC1–OC5), the last v4 (C1–C5). Per-run details, and which
 trial directory is which run, are in `runs/harbor/README.md`.
