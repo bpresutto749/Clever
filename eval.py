@@ -40,7 +40,7 @@ def score_file(path):
             res = core.play_hill(src, HILL)
             s = core.hill_score(res)
             row["hill_score"] = round(s, 4)
-            row["reward"] = round(max(0.0, (s - IMP) / (REF - IMP)), 4)
+            row["reward"] = round(min(1.0, max(0.0, (s - IMP) / (REF - IMP))), 4)
             # start-position luck: standard error of the hill score if the rounds of each
             # battle were independent random draws (per-round points 1, 1/3 or 0)
             var = 0.0

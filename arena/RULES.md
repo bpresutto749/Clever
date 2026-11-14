@@ -27,9 +27,7 @@ hill, divided by 3, so 1 means every round was won.
 The reward rescales the hill score so that a one-line imp (`mov.i #0, 1`, hill score
 0.1650) gets 0 and a strong human-written warrior (hill score 0.4866) gets 1:
 
-    reward = max(0, (hill score - 0.1650) / (0.4866 - 0.1650))
-
-The reward can exceed 1.
+    reward = min(1, max(0, (hill score - 0.1650) / (0.4866 - 0.1650)))
 
 ## Validity
 

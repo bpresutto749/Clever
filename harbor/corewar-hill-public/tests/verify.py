@@ -6,9 +6,11 @@ collects after the run: the last accepted `submit` (arena sidecar), or, if that
 is empty, /app/submission.red from the agent container.
 
 hill_score = mean KotH points per round over the hill / 3, in [0, 1].
-reward = (hill_score - IMP) / (REF - IMP), floored at 0: the fraction of the way
+reward = (hill_score - IMP) / (REF - IMP), clipped to [0, 1]: the fraction of the way
 from a one-line imp (`mov.i #0, 1`, hill score 0.1650) to the human
-expert reference Toxic (0.4866). 1.0 = reference level; it can exceed 1.
+expert reference Toxic (0.4866). 1.0 = reference level or better. Written as one
+number to /logs/verifier/reward.txt, as the challenge requires; details.json holds
+the raw hill score, the unclipped value and the per-opponent results.
 It is 0 when the file is missing, does not assemble, or is a near-copy of any
 published warrior in the corpus (581 warriors, hill and sparring included). The
 one exemption is the exact bytes of the reference file itself, so the oracle can
@@ -61,7 +63,7 @@ def find_submission():
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
-    reward = {"reward": 0.0, "hill_score": 0.0}
+    reward = {"reward": 0.0}
     details = {"hill_size": len(HILL), "rounds": core.ROUNDS}
     path, src = find_submission()
     details["source_file"] = str(path) if path else None
@@ -85,15 +87,17 @@ def main():
             else:
                 res = core.play_hill(src, HILL)
                 score = core.hill_score(res)
-                reward.update({"reward": round(max(0.0, (score - IMP) / (REF - IMP)), 6),
-                               "hill_score": round(score, 6)})
+                raw = (score - IMP) / (REF - IMP)
+                reward["reward"] = round(min(1.0, max(0.0, raw)), 6)
+                details["hill_score"] = round(score, 6)
+                details["reward_unclipped"] = round(raw, 6)
                 details["per_opponent"] = {r.opponent: {"wins": r.wins, "losses": r.losses, "ties": r.ties,
                                                         "points": round(r.points, 4), "error": r.error} for r in res}
                 details["reason"] = "scored"
     details["seconds"] = round(time.time() - t0, 1)
-    (OUT / "reward.json").write_text(json.dumps(reward))
+    (OUT / "reward.txt").write_text(f"{reward['reward']:.6f}\n")
     (OUT / "details.json").write_text(json.dumps(details, indent=1))
-    print(json.dumps(reward))
+    print(f"reward {reward['reward']:.6f}  hill_score {details.get('hill_score', 0.0)}")
     print(details.get("reason"))
 
 
@@ -102,6 +106,6 @@ if __name__ == "__main__":
         main()
     except Exception as e:  # always leave a reward file
         OUT.mkdir(parents=True, exist_ok=True)
-        (OUT / "reward.json").write_text(json.dumps({"reward": 0.0, "hill_score": 0.0}))
+        (OUT / "reward.txt").write_text("0.000000\n")
         (OUT / "details.json").write_text(json.dumps({"reason": f"verifier error: {e!r}"}))
         print("verifier error", repr(e))

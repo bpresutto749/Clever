@@ -5,7 +5,7 @@ TASK = harbor/corewar-hill
 STOP_EARLY_RUNS = $(shell cat runs/final-env/start_times.txt 2>/dev/null)
 STOP_EARLY_RUNS_V2 = $(shell cat runs/v2-small-pool/start_times.txt 2>/dev/null)
 
-.PHONY: all pmars task lint test eval baselines exploits harbor-reference harbor-nop harbor-agent harbor-all clean
+.PHONY: all pmars task lint test eval baselines exploits trajectories harbor-reference harbor-nop harbor-agent harbor-all clean
 
 all: pmars task test eval
 
@@ -17,7 +17,8 @@ task:
 	$(PY) build_task.py
 
 lint: task
-	$(HARBOR) lint $(TASK)
+	$(HARBOR) lint harbor/corewar-hill
+	$(HARBOR) lint harbor/corewar-hill-public
 
 # Unit and regression tests: scoring anchors, sanitiser, copy gate, exploit regressions.
 test: pmars
@@ -42,13 +43,18 @@ exploits: pmars
 	$(PY) exploits/stop_early.py --out results/stop_early.md $(STOP_EARLY_RUNS)
 	$(PY) exploits/stop_early.py --out results/stop_early_v2.md $(STOP_EARLY_RUNS_V2)
 
+# Every submission of every recorded run, scored on its visible pool and on the hidden hill
+trajectories: pmars
+	$(PY) exploits/trajectories.py --spar data/sparring --out trajectories $(STOP_EARLY_RUNS)
+	$(PY) exploits/trajectories.py --spar data/sparring_small --out trajectories_v2 $(STOP_EARLY_RUNS_V2)
+
 # Harbor runs (need Docker). Judges' protocol: reference, do-nothing, 3+ agent runs.
 harbor-reference: task
 	$(HARBOR) run -p $(TASK) -a oracle
 harbor-nop: task
 	$(HARBOR) run -p $(TASK) -a nop
 harbor-agent: task
-	$(HARBOR) run -p $(TASK) -a opencode -m $(MODEL) -k 3
+	$(HARBOR) run -p $(TASK) -a opencode -m $(MODEL) -k 3 $(HARBOR_ARGS)
 harbor-all: harbor-reference harbor-nop harbor-agent
 
 clean:
