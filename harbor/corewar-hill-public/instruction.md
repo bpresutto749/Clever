@@ -35,10 +35,9 @@ A warrior that does not assemble scores 0. pMARS hangs on very long source lines
 
 Your warrior is assembled exactly as it is scored: two warriors, 500 rounds.
 
-Write your own warrior. A near-copy of a sparring warrior or of a hill warrior scores 0,
-and the reviewers see every submission's closest match among about 580 published
-warriors. Using published ideas and techniques is fine; submitting someone else's warrior
-is not.
+Write your own warrior. A near-copy of any published warrior in our corpus of about 580
+(the hill and sparring warriors included) scores 0. Using published ideas and techniques
+is fine; submitting someone else's warrior is not.
 
 ## What you have
 
@@ -47,7 +46,7 @@ The MCP server `corewar` provides these tools:
 | tool | what it does |
 |---|---|
 | `get_rules` | these rules |
-| `list_sparring` | the ids (s01–s10) of 10 sparring warriors of the same kind as the hill. None of them is on the hill. They are black boxes: you can play them, but their source is not available. |
+| `list_sparring` | the ids (s01–s30) of 30 sparring warriors from the same ladder as the hill, spread over the same strength range. None of them is on the hill. They are black boxes: you can play them, but their source is not available. |
 | `battle(source, opponents=None, rounds=100)` | plays your warrior against sparring warriors with the scoring settings (rounds up to 500) |
 | `battle_custom(source, opponent_source, rounds=100)` | plays two warriors of your own against each other |
 | `submit(source)` | sets your final submission. You can submit as often as you like; the last accepted submission is the one scored. |

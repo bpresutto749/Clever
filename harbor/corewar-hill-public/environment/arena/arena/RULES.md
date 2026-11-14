@@ -39,22 +39,20 @@ The reward can exceed 1.
 - **Line and file limits.** pMARS hangs on very long source lines, so comment lines are
   cut to 200 characters and a code line longer than 200 characters makes the file invalid.
   Source files are limited to 20 000 bytes.
-- **Write your own warrior.** A near-copy of a sparring warrior or of a hill warrior
-  scores 0.
+- **Write your own warrior.** A near-copy of any published warrior in our corpus of about
+  580 (hill and sparring warriors included) scores 0.
   - Near-copy means that, once empty `DAT 0, 0` padding is removed, one of these holds:
     - the assembled code matches with a similarity of 0.8 or more (a copy inside a larger
       file counts);
     - the instruction structure with constants removed matches at 0.9 or more (programs of
       8+ instructions).
-  - The reviewers also see every submission's closest match among about 580 published
-    warriors.
   - Using published ideas and techniques is fine; submitting someone else's warrior is
     not.
 
 ## Sparring pool
 
-There are 10 warriors of the same kind as the hill, with ids s01–s10. None of them is on
-the hill.
+There are 30 warriors from the same ladder as the hill, spread over the same strength
+range, with ids s01–s30. None of them is on the hill.
 
 They are black boxes: `battle` plays them with exactly the scoring settings (100 rounds by
 default, up to 500), but their source and names are not available.

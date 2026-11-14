@@ -2,7 +2,7 @@
 
 Tools (streamable HTTP on :8000/mcp):
   get_rules()                  - the scoring rules and settings
-  list_sparring()              - ids of the sparring warriors (s01..s10)
+  list_sparring()              - ids of the sparring warriors (s01..s30)
   battle(source, opponents, rounds) - play a warrior against sparring warriors
   battle_custom(source, opponent_source, rounds) - play two sources of your own
   submit(source)               - set your final submission (last accepted one counts)
@@ -64,7 +64,7 @@ def get_rules() -> str:
 
 @mcp.tool()
 def list_sparring() -> str:
-    """Ids of the 10 sparring warriors (none of them is on the hidden hill). Their
+    """Ids of the 30 sparring warriors (none of them is on the hidden hill). Their
     source code is not available; play them with `battle`."""
     return "\n".join(i for i, _ in _sparring())
 
@@ -106,16 +106,13 @@ def battle_custom(source: str, opponent_source: str, rounds: int = 100) -> str:
 @mcp.tool()
 def submit(source: str) -> str:
     """Set your final submission. You may submit many times; the last accepted
-    submission is the one that is scored on the hidden hill."""
+    submission is the one that is scored on the hidden hill. Any warrior that
+    assembles is accepted here; originality is checked by the verifier."""
     with _lock:
         ins, msgs = core.assemble(source)
         if not ins:
             _log({"event": "submit", "accepted": False, "reason": "does not assemble"})
             return "rejected: does not assemble\n" + msgs
-        cp = core.nearest_published(ins, [SPARRING])
-        if cp["copy"]:
-            _log({"event": "submit", "accepted": False, "reason": "near-copy of a sparring warrior"})
-            return "rejected: near-copy of a sparring warrior"
         RESULTS.mkdir(parents=True, exist_ok=True)
         tmp = RESULTS / "submission.red.tmp"
         tmp.write_text(source)

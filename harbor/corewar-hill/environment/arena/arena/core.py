@@ -237,10 +237,14 @@ class Result:
 
 
 def battle(a_path: str, b_path: str, name: str, rounds: int = ROUNDS) -> Result:
+    args = ["-b", "-k", "-r", str(rounds), "-f", a_path, b_path]
     try:
-        p = run_pmars(["-b", "-k", "-r", str(rounds), "-f", a_path, b_path], BATTLE_TIMEOUT)
+        p = run_pmars(args, BATTLE_TIMEOUT)
     except subprocess.TimeoutExpired:
-        return Result(name, 0, rounds, 0, rounds, "timeout")
+        try:   # a slow machine is not the warrior's fault: retry once with a long timeout
+            p = run_pmars(args, 4 * BATTLE_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            return Result(name, 0, rounds, 0, rounds, "timeout")
     lines = [l for l in p.stdout.strip().splitlines() if l.split() and l.split()[0].lstrip("-").isdigit()]
     if len(lines) < 2:
         return Result(name, 0, rounds, 0, rounds, (p.stdout + p.stderr).strip()[-300:] or "no result")
@@ -252,7 +256,9 @@ def battle(a_path: str, b_path: str, name: str, rounds: int = ROUNDS) -> Result:
 def play_hill(text: str, opponents: list[Path], rounds: int = ROUNDS, workers: int | None = None) -> list[Result]:
     """Battle a warrior source against every opponent file. Opponents are trusted
     files shipped with the task; they are sanitised too, for safety."""
-    workers = workers or max(1, min(len(opponents), os.cpu_count() or 2))
+    # os.cpu_count() reports the host's CPUs inside a CPU-limited container, so the
+    # pool size comes from ARENA_WORKERS (default 2, the task's CPU allocation).
+    workers = workers or max(1, min(len(opponents), int(os.environ.get("ARENA_WORKERS", "2"))))
     with Source(text) as s:
         if s.path is None:
             return [Result(o.stem, 0, rounds, 0, rounds, "invalid source") for o in opponents]

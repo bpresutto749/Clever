@@ -9,8 +9,10 @@ hill_score = mean KotH points per round over the hill / 3, in [0, 1].
 reward = (hill_score - IMP) / (REF - IMP), floored at 0: the fraction of the way
 from a one-line imp (`mov.i #0, 1`, hill score 0.1650) to the human
 expert reference Toxic (0.4866). 1.0 = reference level; it can exceed 1.
-It is 0 when the file is missing, does not assemble, or is a near-copy of a
-sparring or hill warrior (those would make the score meaningless).
+It is 0 when the file is missing, does not assemble, or is a near-copy of any
+published warrior in the corpus (581 warriors, hill and sparring included). The
+one exemption is the exact bytes of the reference file itself, so the oracle can
+be scored: reproducing it byte for byte earns exactly 1.0, any edit of it is gated.
 """
 import hashlib
 import json
@@ -40,10 +42,19 @@ SUBMISSION_PATHS = [Path(os.environ.get("SIDECAR_SUBMISSION", "/results/submissi
                     Path(os.environ.get("APP_SUBMISSION", "/app/submission.red"))]
 
 
+# sha256 of the reference text as the verifier reads it (line endings normalised)
+REFERENCE_SHA256 = "d9e8773dbf9a9792425872cb079f86b2c63c08281399e87c2c96eebba8c33f5b"
+
+
 def find_submission():
     for p in SUBMISSION_PATHS:
-        if p.is_file() and p.read_text(errors="replace").strip():
-            return p, p.read_text(errors="replace")
+        if not p.is_file():
+            continue
+        if p.stat().st_size > core.MAX_SOURCE:
+            return p, "\0" * (core.MAX_SOURCE + 1)       # too big: rejected by the sanitiser, never read
+        text = p.read_text(errors="replace")
+        if text.strip():
+            return p, text
     return None, ""
 
 
@@ -64,13 +75,13 @@ def main():
             details["reason"] = "does not assemble"
             details["pmars"] = msgs
         else:
-            gate = core.nearest_published(ins, [HERE / "data" / "hill", SPARRING])
-            pub = core.nearest_published(ins, [CORPUS])
-            details["nearest_hill_or_sparring"] = gate
+            exempt = hashlib.sha256(src.replace("\r", "").encode()).hexdigest() == REFERENCE_SHA256
+            pub = core.nearest_published(ins, [CORPUS, HERE / "data" / "hill", SPARRING])
             details["nearest_published"] = pub
             details["nearest_published_similarity"] = max(pub["exact"], pub["struct"])
-            if gate["copy"]:
-                details["reason"] = f"near-copy of {gate['warrior']}"
+            details["reference_exemption"] = exempt
+            if pub["copy"] and not exempt:
+                details["reason"] = f"near-copy of published warrior {pub['warrior']}"
             else:
                 res = core.play_hill(src, HILL)
                 score = core.hill_score(res)

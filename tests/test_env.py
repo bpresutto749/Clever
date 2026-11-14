@@ -15,7 +15,7 @@ IMP = ";redcode-94\n        mov.i #0, 1\n"
 
 def test_split_is_disjoint_and_as_documented():
     split = json.loads((ROOT / "data" / "split.json").read_text())
-    assert len(HILL) == 30 and len(SPAR) == 10
+    assert len(HILL) == 30 and len(SPAR) == 30
     assert {p.stem for p in HILL} == set(split["hill"])
     assert {p.stem for p in SPAR} == set(split["sparring"])
     assert not ({p.stem for p in HILL} & {p.stem for p in SPAR})
@@ -48,13 +48,17 @@ def test_sanitizer_blocks_the_long_line_hang():
     assert core.sanitize(";" * 30000) is None
 
 
-def test_copy_gate_catches_sparring_and_hill_copies_but_not_originals():
+def test_copy_gate_catches_published_copies_but_not_originals():
+    gate = [ROOT / "data" / "corpus", ROOT / "data" / "hill", ROOT / "data" / "sparring"]
     for p in SPAR[:3] + HILL[:3]:
         ins = core.assemble(p.read_text())[0]
-        assert core.nearest_published(ins, [ROOT / "data" / "hill", ROOT / "data" / "sparring"])["copy"]
+        assert core.nearest_published(ins, gate)["copy"]
+    placeholder = core.assemble((ROOT / "doc" / "example_dwarf.red").read_text())[0]
     for p in sorted((ROOT / "runs").rglob("*.red")):
         ins = core.assemble(p.read_text())[0]
-        assert not core.nearest_published(ins, [ROOT / "data" / "hill", ROOT / "data" / "sparring"])["copy"], p
+        if ins == placeholder:      # some agents submitted the documentation's dwarf as a placeholder
+            continue
+        assert not core.nearest_published(ins, gate)["copy"], p
 
 
 def test_task_keeps_hill_and_sparring_source_out_of_the_agent_image():
@@ -80,7 +84,7 @@ def test_assembly_uses_the_battle_context():
 
 
 def test_padding_and_retuning_do_not_escape_the_gate():
-    gate = [ROOT / "data" / "hill", ROOT / "data" / "sparring"]
+    gate = [ROOT / "data" / "corpus", ROOT / "data" / "hill", ROOT / "data" / "sparring"]
     for f in sorted((ROOT / "exploits" / "cases").glob("*.red")):
         if f.name.startswith("d2_"):
             continue
