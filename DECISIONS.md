@@ -141,4 +141,4 @@ crashed. `OPTNUM` is now 32, and `-Dround=pmars_round` avoids the clash between 
 `round` and the C library's `round()` under clang. Same outputs before and after, gcc and
 clang: the reference against Blizzard (200 rounds, fixed series) gives 46/7/147 with the old
 gcc build, the new gcc build and the clang build; run C5 against Blizzard at `-F 7253` gives
-0/70/30 with all three. The Harbor task directory picks the fix up at the next `make task`.
+0/70/30 with all three. `harbor/` was regenerated with the fix (`make task`); the verifier scores nothing differently.
