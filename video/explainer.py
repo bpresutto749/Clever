@@ -4,7 +4,7 @@ Every number on screen comes from the repository (README.md, FAILURES.md, result
 usage: python video/explainer.py [all | <scene name>]   -> video/build/<scene>.mp4"""
 import math, os, sys
 from PIL import Image, ImageDraw
-from style import (W, H, FPS, F, M, BG, PANEL, LINE, FG, MUTED, DIM, TRACK, RED, GREEN, RED_L, GREEN_L, ACC, ACC_L, BLUE,
+from style import (W, H, FPS, F, M, BG, PANEL, LINE, FG, MUTED, DIM, TRACK, RED, GREEN, RED_L, GREEN_L, ACC, ACC_L, BLUE, CODE_BG,
                      clamp, ease, ramp, mix, fade, text, core_bg, rail, panel, head, base, tick, cross, arrow,
                      hbar, DWARF, render)
 
@@ -15,7 +15,7 @@ def center_lines(d, lines, y, a, gap):
 # ---------------------------------------------------------------- opening
 def s_title(t, dur):
     img = core_bg(t * 0.9, 0.9); d = ImageDraw.Draw(img, "RGBA"); k = fade(t, dur, 0.3, 0.6)
-    d.rectangle((0, 300, W, 790), fill=(255, 255, 255, int(235 * k)))
+    d.rectangle((0, 300, W, 790), fill=BG + (int(235 * k),))
     text(d, (W / 2, 450), "HILL CLIMB", F("InterDisplay-Black.otf", 180), FG, ramp(t, 0.6, 0.8) * k, "mm")
     text(d, (W / 2, 600), "Can AI coding agents beat human experts", F("Inter-Bold.otf", 52), FG, ramp(t, 1.8, 0.8) * k, "mm")
     text(d, (W / 2, 665), "at a classic programming game?", F("Inter-Bold.otf", 52), ACC, ramp(t, 2.4, 0.8) * k, "mm")
@@ -275,7 +275,7 @@ def s_craft(t, dur):
     img, d, k = base(t, dur, {"craft"})
     head(d, t, "5 · CAN THE SCORE BE TRUSTED?", "Anyone can check it, with one command", k)
     a = ramp(t, 0.4) * k
-    panel(d, (120, 300, 1800, 690), a, fill=(250, 250, 251))
+    panel(d, (120, 300, 1800, 690), a, fill=CODE_BG)
     for i, (cmd, out, c, note) in enumerate(TERM):
         y = 345 + i * 112; t0 = 0.8 + i * 1.5
         n = int(clamp((t - t0) / 0.8) * len(cmd))
@@ -317,7 +317,7 @@ def s_train(t, dur):
 
 def s_close(t, dur):
     img = core_bg(8 + t * 0.5, 0.6); d = ImageDraw.Draw(img, "RGBA"); k = fade(t, dur, 0.5, 1.0)
-    d.rectangle((0, 210, W, 960), fill=(255, 255, 255, int(238 * k)))
+    d.rectangle((0, 210, W, 960), fill=BG + (int(238 * k),))
     a = ramp(t, 0.4, 0.8) * k
     text(d, (960, 320), "AI coding agents don't yet match", F("InterDisplay-Black.otf", 86), FG, a, "mm")
     text(d, (960, 420), "human experts.", F("InterDisplay-Black.otf", 86), FG, a, "mm")

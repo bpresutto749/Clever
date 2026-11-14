@@ -19,6 +19,25 @@ BG = (255, 255, 255); PANEL = (246, 247, 249); LINE = (226, 229, 234)
 FG = (17, 24, 39); MUTED = (100, 108, 122); DIM = (205, 210, 217); TRACK = (236, 238, 242)
 RED = (220, 38, 38); GREEN = (22, 150, 70); RED_L = (254, 226, 226); GREEN_L = (220, 245, 228)
 ACC = (37, 99, 235); ACC_L = (232, 240, 254); BLUE = (60, 90, 170)
+# colours of particular elements (cards, terminal panels, the secret opponents, memory cells, the background animation)
+CARD = (255, 255, 255); CODE_BG = (250, 250, 251); LOSS = (120, 128, 140); RUN_BAR = (236, 120, 120)
+OPP_FILL = (222, 229, 244); OPP_LINE = (90, 112, 170); BLUE_T = (60, 84, 150)
+CELL_EMPTY = (236, 238, 242); CELL_GAP = (255, 255, 255)
+RED_C = (248, 185, 185); GREEN_C = (180, 226, 196); BLUE_C = (205, 214, 236)      # memory written by AI / expert / opponent
+CORE_BASE = (238, 240, 243); CORE_A = (247, 178, 178); CORE_B = (198, 210, 238)
+
+# VIDEO_THEME=dark (set by demo_full.py before it imports anything): the same scenes in an app-like dark theme
+THEME = os.environ.get("VIDEO_THEME", "light")
+if THEME == "dark":
+    BG = (13, 17, 23); PANEL = (22, 27, 34); LINE = (48, 54, 61)
+    FG = (230, 237, 243); MUTED = (139, 148, 158); DIM = (66, 74, 84); TRACK = (33, 38, 45)
+    RED = (248, 81, 73); GREEN = (63, 185, 80); RED_L = (56, 23, 26); GREEN_L = (16, 44, 27)
+    ACC = (88, 166, 255); ACC_L = (15, 34, 62); BLUE = (121, 170, 255)
+    CARD = (22, 27, 34); CODE_BG = (8, 11, 16); LOSS = (110, 118, 129); RUN_BAR = (150, 62, 60)
+    OPP_FILL = (24, 34, 56); OPP_LINE = (88, 124, 200); BLUE_T = (140, 180, 255)
+    CELL_EMPTY = (27, 32, 40); CELL_GAP = BG
+    RED_C = (104, 40, 42); GREEN_C = (26, 84, 47); BLUE_C = (36, 56, 94)
+    CORE_BASE = (24, 29, 37); CORE_A = (96, 38, 40); CORE_B = (35, 56, 96)
 
 def clamp(x, a=0.0, b=1.0): return max(a, min(b, x))
 def ease(x): x = clamp(x); return 1 - (1 - x) ** 3
@@ -155,15 +174,16 @@ for g in range(9):
     seeds = seeds + new
 
 def core_bg(t, strength=1.0):
-    base = np.array([238, 240, 243], float)
+    base = np.array(CORE_BASE, float)
     col = np.tile(base, (N, 1))
     a = tA <= t; b = tB <= t
-    col[b] = (198, 210, 238); col[a] = (247, 178, 178)
+    col[b] = CORE_B; col[a] = CORE_A
     col[(tA <= t) & (tA > t - 0.12)] = RED; col[(tB <= t) & (tB > t - 0.12)] = BLUE
-    col = 255 + (col - 255) * strength
+    bg = np.array(BG, float)
+    col = bg + (col - bg) * strength
     img = np.repeat(np.repeat(col.reshape(ROWS, COLS, 3), CELL, 0), CELL, 1)
     m = np.ones((CELL, CELL), bool); m[16:, :] = False; m[:, 16:] = False
-    out = np.where(np.tile(m, (ROWS, COLS))[..., None], img, 255.0)
+    out = np.where(np.tile(m, (ROWS, COLS))[..., None], img, bg)
     return Image.fromarray(out.astype(np.uint8), "RGB")
 
 # ---------------------------------------------------------------- frame helpers

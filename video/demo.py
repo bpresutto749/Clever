@@ -9,13 +9,14 @@ import bisect, os, subprocess, sys
 import numpy as np
 from PIL import Image, ImageDraw
 from style import (W, H, F, M, BG, LINE, FG, MUTED, DIM, TRACK, RED, GREEN, RED_L, GREEN_L, ACC, ACC_L,
+                   CARD, CODE_BG, LOSS, RUN_BAR, OPP_FILL, OPP_LINE, BLUE_T, CELL_EMPTY, CELL_GAP, RED_C, GREEN_C,
                    clamp, ramp, mix, fade, text, panel, arrow, render, base, head, ROOT)
+from style import BLUE, BLUE_C as BLUE_L
 sys.path.insert(0, ROOT)
 from arena import core
 import mars
 
 CMD = "$ harbor run -p harbor/corewar-hill -a opencode -m anthropic/claude-opus-5-5 -k 5 -o jobs"
-BLUE_T = (60, 84, 150)
 PARTS = ["The test", "The run", "The result", "Why the gap"]
 
 def part(i, extra=""):
@@ -27,8 +28,6 @@ AI_SRC = os.path.join(ROOT, "runs", "harbor", "final-v4", "run_C5.red")   # the 
 EX_SRC = os.path.join(ROOT, "data", "reference_toxic.red")         # the human reference (Toxic)
 FPOS = 7253                                                         # same start position for both games
 COLS, ROWS, CELL = 100, 80, 7
-BLUE, BLUE_L = (60, 90, 170), (205, 214, 236)
-RED_C, GREEN_C = (248, 185, 185), (180, 226, 196)                   # memory written by the AI / by the expert
 FIGHTS = None
 
 def run_fight(src):
@@ -49,13 +48,13 @@ def fights():
     return FIGHTS
 
 def grid(owner, pa, pb, prog_l, prog_d, cell=CELL):
-    pal = np.array([[236, 238, 242], prog_l, BLUE_L], np.uint8)
+    pal = np.array([CELL_EMPTY, prog_l, BLUE_L], np.uint8)
     cells = pal[owner].copy()
     for p in pb: cells[p] = BLUE
     for p in pa: cells[p] = prog_d
     img = np.repeat(np.repeat(cells.reshape(ROWS, COLS, 3), cell, 0), cell, 1)
     msk = np.ones((cell, cell), bool); msk[cell - 2:, :] = False; msk[:, cell - 2:] = False
-    img = np.where(np.tile(msk, (ROWS, COLS))[..., None], img, 255)
+    img = np.where(np.tile(msk, (ROWS, COLS))[..., None], img, np.array(CELL_GAP, np.uint8))
     return Image.fromarray(img.astype(np.uint8), "RGB")
 
 _STEPS = {}
@@ -124,8 +123,8 @@ def test(kicker):
             r, c = divmod(i, 10)
             x, y = 690 + c * 108, 345 + r * 50
             aa = ramp(t, 2.0 + i * 0.04, 0.4) * k
-            d.rounded_rectangle((x, y, x + 96, y + 42), 10, fill=mix((222, 229, 244), aa), outline=mix((90, 112, 170), aa), width=2)
-            text(d, (x + 48, y + 21), "?", F("Inter-Bold.otf", 22), (90, 112, 170), aa, "mm")
+            d.rounded_rectangle((x, y, x + 96, y + 42), 10, fill=mix(OPP_FILL, aa), outline=mix(OPP_LINE, aa), width=2)
+            text(d, (x + 48, y + 21), "?", F("Inter-Bold.otf", 22), OPP_LINE, aa, "mm")
         text(d, (1230, 520), "30 secret opponents, 500 games against each", F("Inter-Bold.otf", 28), BLUE_T, ramp(t, 3.0) * k, "mm")
         if t > t1:
             aa = ramp(t, t1, 0.6) * k
@@ -173,7 +172,7 @@ def term(kicker, last):
         img, d, k = base(t, dur, {"craft"})
         head(d, t, kicker, "Five runs of the same AI, one command", k)
         a = ramp(t, 0.3) * k
-        panel(d, (120, 290, 1800, 620), a, fill=(250, 250, 251))
+        panel(d, (120, 290, 1800, 620), a, fill=CODE_BG)
         n = int(clamp((t - 0.6) / 1.4) * len(CMD))
         text(d, (160, 330), CMD[:n], M(27), FG, a)
         prog = clamp((t - 2.3) / 4.2)
@@ -252,7 +251,7 @@ def replay_frame(t, dur, m0, m1, kicker, title_, hold=3.5):
         y += 100 if why else 64
     cur = items[-1]
     if cur[3]:
-        panel(d, (120, 830, 1180, 945), a, fill=(250, 250, 251), r=14)
+        panel(d, (120, 830, 1180, 945), a, fill=CODE_BG, r=14)
         text(d, (140, 846), "from its log:", F("Inter-SemiBold.otf", 22), MUTED, a)
         text(d, (140, 880), cur[3][:72], M(24), FG, a)
     panel(d, (1260, 280, 1800, 390), a, r=18)
@@ -372,13 +371,13 @@ def fight(kicker):
                 aa = ramp(t, INTRO + SLOW * 9 / 60, 0.4) * k
                 y0 = gy + 72 * CELL
                 d.rounded_rectangle((x - 5, y0 - 5, x + gw + 5, y0 + 2 * CELL + 5), 8, outline=mix(GREEN, aa), width=4)
-                d.rounded_rectangle((x + 90, y0 - 56, x + 610, y0 - 12), 10, fill=mix((255, 255, 255), aa), outline=mix(GREEN, aa), width=2)
+                d.rounded_rectangle((x + 90, y0 - 56, x + 610, y0 - 12), 10, fill=mix(CARD, aa), outline=mix(GREEN, aa), width=2)
                 text(d, (x + 350, y0 - 34), "its bombs land on Blizzard's code", F("Inter-Bold.otf", 25), GREEN, aa, "mm")
             if t >= INTRO and c >= end:
                 t_end = INTRO + (SLOW * end / 60 if end <= 60 else SLOW + FAST * (end - 60) / (last - 60))
                 aa = ramp(t, t_end, 0.4) * k
                 msg = f"wins at step {end:,}" if win else f"loses at step {end:,}"
-                d.rounded_rectangle((x + 110, 500, x + 590, 590), 20, fill=mix((255, 255, 255), aa), outline=mix(dark, aa), width=4)
+                d.rounded_rectangle((x + 110, 500, x + 590, 590), 20, fill=mix(CARD, aa), outline=mix(dark, aa), width=4)
                 text(d, (x + 350, 545), msg, F("InterDisplay-Black.otf", 38), dark, aa, "mm")
         ff = " · fast-forward" if 60 < c < last else ""
         text(d, (1750, 266), f"step {int(min(c, last)):,}{ff}", F("Inter-Bold.otf", 26), FG, a, "rm")
@@ -386,7 +385,7 @@ def fight(kicker):
              F("Inter-SemiBold.otf", 21), MUTED, a * clamp((t - INTRO + 0.5) / 0.5), "lm")
         if t < INTRO:
             aa = ramp(t, 0.6, 0.6) * k * clamp((INTRO - t) / 0.4)
-            d.rounded_rectangle((380, 330, 1540, 790), 24, fill=mix((255, 255, 255), aa * 0.97), outline=mix(LINE, aa), width=3)
+            d.rounded_rectangle((380, 330, 1540, 790), 24, fill=mix(CARD, aa * 0.97), outline=mix(LINE, aa), width=3)
             text(d, (960, 385), "How to read this", F("Inter-Black.otf", 40), FG, aa, "mm")
             rows = [("One game against Blizzard: the secret opponent where the gap is largest.", FG),
                     ("Left: the AI's program (red). Right: the expert's (green).", FG),
@@ -424,7 +423,7 @@ def stats(kicker):
             x = 120; small = []
             for v, name in vals:
                 w = 1680 * v / 500 * g
-                c = col if name == "wins" else (DIM if name == "draws" else (120, 128, 140))
+                c = col if name == "wins" else (DIM if name == "draws" else LOSS)
                 if w > 2: d.rounded_rectangle((x, y + 62, x + w, y + 138), 10, fill=mix(c, a))
                 if v > 40: text(d, (x + w / 2, y + 100), f"{v} {name}", F("Inter-Bold.otf", 28), FG if name == "draws" else BG, a * clamp((g - 0.85) / 0.15), "mm")
                 else: small.append(f"{v} {name}")
@@ -453,7 +452,7 @@ def end(t, dur):
         text(d, (120, y + 22), lab, F("Inter-Bold.otf" if hl else "Inter-SemiBold.otf", 30), FG if hl else MUTED, a, "lm")
         d.rounded_rectangle((bx0, y, bx1, y + 44), 10, fill=mix(TRACK, a))
         w = (bx1 - bx0) * r * g
-        if w > 2: d.rounded_rectangle((bx0, y, bx0 + w, y + 44), 10, fill=mix(RED if hl else (236, 120, 120), a))
+        if w > 2: d.rounded_rectangle((bx0, y, bx0 + w, y + 44), 10, fill=mix(RED if hl else RUN_BAR, a))
         text(d, (bx0 + w + 16, y + 22), f"{r:.3f}", F("Inter-Bold.otf", 28), RED, a * clamp((g - 0.85) / 0.15), "lm")
     ae = ramp(t, 1.8, 0.5) * k
     for yy in range(280, 590, 16):

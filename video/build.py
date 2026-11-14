@@ -28,8 +28,7 @@ if __name__ == "__main__":
     for mod, out in VIDEOS:
         if what not in ("all", mod):
             continue
+        if "--join-only" not in sys.argv:          # each video in its own process: demo_full.py sets its own theme
+            subprocess.run([sys.executable, os.path.join(HERE, mod + ".py"), "all"], check=True)
         m = importlib.import_module(mod)
-        if "--join-only" not in sys.argv:
-            for name, fn, dur in m.SCENES:
-                style.render(name, fn, dur); print("rendered", name, flush=True)
         join(m.SCENES, os.path.join(media, out))

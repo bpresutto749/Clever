@@ -6,11 +6,11 @@ screen comes from this repository; nothing is filmed or hand-edited.
 | video | length | what it shows |
 |---|---|---|
 | [`media/corewar_pitch_1min59.mp4`](../media/corewar_pitch_1min59.mp4) | 1 min 59 | **the pitch**: the test we want, the game, the test, what we found (the gap, one run, one game, three everyday mistakes), why the score can be trusted |
-| [`media/corewar_demo_full.mp4`](../media/corewar_demo_full.mp4) | 6 min 42 | **the full demo**: the same argument in detail, with one real `harbor run` + OpenCode run (C5) replayed from its logs, the real test, and one real game |
+| [`media/corewar_demo_full.mp4`](../media/corewar_demo_full.mp4) | 6 min 42 | **the full demo**: the same argument in detail, with one real `harbor run` + OpenCode run (C5) replayed from its logs, the real test, and one real game; shown as a screen demo (dark app window, recording timecode) |
 | [`media/corewar_explainer.mp4`](../media/corewar_explainer.mp4) | 3 min 53 | shorter cut: the presentation alone |
 | [`media/corewar_demo.mp4`](../media/corewar_demo.mp4) | 3 min 15 | shorter cut: the run alone (the test, the run, the result, why the gap) |
 
-The colours mean the same thing everywhere: red is the AI, green is the human expert, blue is
+The full demo uses the same scenes in a dark theme (`VIDEO_THEME=dark`, set by `demo_full.py`). The colours mean the same thing everywhere: red is the AI, green is the human expert, blue is
 everything else (headings, opponents, the criteria rail).
 
 ## Where the numbers come from

@@ -4,11 +4,15 @@
 replayed, then one real game, then what goes wrong across the runs), 5 can the score be trusted,
 then training and the close.
 It only assembles scenes: the presentation's come from explainer.py, the run's from demo.py.
+It is shown as a demo: the scenes in a dark theme, inside an app window on a desktop, with a
+recording indicator, a timecode and a status bar. The words and numbers are those of the scenes.
 usage: python video/demo_full.py [all | <scene name>]   -> video/build/<scene>.mp4"""
+import os
+os.environ["VIDEO_THEME"] = "dark"           # before style.py is imported, by this file or by the scenes
 import sys
 from functools import partial
-from PIL import Image
-from style import F, LINE, FG, MUTED, RED, ACC, BLUE, ramp, mix, text, render, base, head, core_bg
+from PIL import Image, ImageDraw, ImageFilter
+from style import W, H, M, F, LINE, FG, MUTED, RED, ACC, BLUE, ramp, mix, text, render, base, head, core_bg
 import explainer as ex
 import demo as dm
 
@@ -63,6 +67,64 @@ SCENES = [("f01_title", ex.s_title, 7.0),
           ("f33_cheat", ex.s_cheat, 11.0), ("f34_craft", ex.s_craft, 10.0),
           ("f35_bridge", bridge("Last question: can an AI learn from this game?", {"tie"}), 3.4),
           ("f36_train", ex.s_train, 10.5), ("f37_close", ex.s_close, 9.0)]
+
+# ---------------------------------------------------------------- the demo frame: an app window on a desktop
+S = 0.86                                    # the scene, scaled into the window
+CW, CH = round(W * S), round(H * S)
+TB, SB, R = 46, 32, 16                      # title bar, status bar, corner radius
+WX, WY = (W - CW) // 2, (H - (TB + CH + SB)) // 2
+TITLE_BG, STATUS_BG, EDGE = (30, 35, 44), (22, 26, 33), (58, 64, 74)
+SECTIONS = [("f01", "intro"), ("f03", "1 · the test we need"), ("f05", "2 · the game"), ("f10", "3 · how the test works"),
+            ("f17", "4 · what we found"), ("f32", "5 · can the score be trusted?"), ("f35", "bonus · training"), ("f37", "conclusion")]
+CHROME = None
+
+
+def chrome():
+    """The desktop, the window's shadow, frame, title bar and status bar: the same in every frame."""
+    global CHROME
+    if CHROME is None:
+        import numpy as np
+        y = np.linspace(0, 1, H)[:, None, None]
+        grad = (np.array((34, 40, 54)) * (1 - y) + np.array((10, 12, 17)) * y).astype(np.uint8)
+        img = Image.fromarray(np.repeat(grad, W, axis=1), "RGB")
+        sh = Image.new("L", (W, H), 0)
+        ImageDraw.ImageDraw(sh).rounded_rectangle((WX - 4, WY + 18, WX + CW + 4, WY + TB + CH + SB + 30), R + 6, fill=170)
+        img.paste((0, 0, 0), (0, 0), sh.filter(ImageFilter.GaussianBlur(28)))
+        d = ImageDraw.Draw(img, "RGBA")
+        d.rounded_rectangle((WX - 1, WY - 1, WX + CW + 1, WY + TB + CH + SB + 1), R + 1, fill=EDGE + (255,))
+        d.rounded_rectangle((WX, WY, WX + CW, WY + TB + CH + SB), R, fill=TITLE_BG + (255,))
+        d.rectangle((WX, WY + TB + CH, WX + CW, WY + TB + CH + SB - R), fill=STATUS_BG + (255,))
+        d.rounded_rectangle((WX, WY + TB + CH, WX + CW, WY + TB + CH + SB), R, fill=STATUS_BG + (255,))
+        d.line((WX, WY + TB - 1, WX + CW, WY + TB - 1), fill=EDGE + (255,), width=1)
+        for i, c in enumerate(((255, 95, 87), (254, 188, 46), (40, 200, 64))):
+            cx, cy = WX + 26 + i * 24, WY + TB // 2
+            d.ellipse((cx - 7, cy - 7, cx + 7, cy + 7), fill=c + (255,))
+        text(d, (W / 2, WY + TB // 2), "hill-climb  —  live demo  ·  harbor/corewar-hill", F("Inter-SemiBold.otf", 21), (200, 207, 216), 1, "mm")
+        text(d, (WX + 22, WY + TB + CH + SB // 2), "Claude Opus 5.5 via OpenCode  ·  pMARS 0.9.4  ·  30 secret opponents  ·  every number from the run logs",
+             F("Inter-Medium.otf", 17), (125, 133, 144), 1, "lm")
+        CHROME = img
+    return CHROME
+
+
+def framed(name, fn, start):
+    section = [lab for key, lab in SECTIONS if key <= name[:3]][-1]
+    def scene(t, dur):
+        img = chrome().copy()
+        img.paste(fn(t, dur).convert("RGB").resize((CW, CH), Image.LANCZOS), (WX, WY + TB))
+        d = ImageDraw.Draw(img, "RGBA")
+        clock = start + t
+        if int(clock * 2) % 2 == 0:
+            d.ellipse((WX + CW - 158, WY + TB // 2 - 6, WX + CW - 146, WY + TB // 2 + 6), fill=(255, 69, 58, 255))
+        text(d, (WX + CW - 138, WY + TB // 2), f"REC  {int(clock // 60):02d}:{int(clock % 60):02d}", M(19, True), (220, 226, 233), 1, "lm")
+        text(d, (WX + CW - 22, WY + TB + CH + SB // 2), section, F("Inter-SemiBold.otf", 17), (160, 168, 178), 1, "rm")
+        return img
+    return scene
+
+
+_start, _framed = 0.0, []
+for _name, _fn, _dur in SCENES:
+    _framed.append((_name, framed(_name, _fn, _start), _dur)); _start += _dur
+SCENES = _framed
 
 if __name__ == "__main__":
     what = sys.argv[1] if len(sys.argv) > 1 else "all"
