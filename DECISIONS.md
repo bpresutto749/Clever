@@ -26,7 +26,7 @@ gap was not tuned after the fact.
 | **Copy gate: scope narrowed.** It now zeroes only copies of hill or sparring warriors, and only reports the rest of the 581-warrior corpus. | The reference itself is a near-relative of another published warrior (Mercenary, similarity 0.88). A whole-corpus gate would have needed a whitelist for it (see EXPLOITS.md). |
 | **Hill selection rule removed from the agent instruction.** | With internet access, an agent could otherwise reconstruct the hidden hill from the public ladder. |
 
-## Changed after the first adversarial review (35/100), before the final runs
+## Changed after the first adversarial review (35/100), before the version-2 runs
 
 A fresh critic agent broke version 1. Every fix below is covered by a regression case in
 `make exploits` or `make test`.
@@ -47,9 +47,27 @@ A fresh critic agent broke version 1. Every fix below is covered by a regression
   difficulty cannot be put down to withheld community knowledge.
 - Scoring moved to 500 rounds.
 
-Because the agent's environment changed, the headline numbers come from **new runs in the
-final environment** (`runs/final-env/`). Runs A–E2 and G (`runs/opus-5.5*`) were made in
-version 1 and are kept as earlier evidence, rescored at 500 rounds.
+Because the agent's environment changed, these changes were followed by new runs: version 2,
+`runs/v2-small-pool/`. Runs A–E2 and G (`runs/opus-5.5*`) were made in version 1 and are
+kept as earlier evidence, rescored at 500 rounds.
+
+## Changed after the second adversarial review (50/100), before the version-3 runs
+
+| finding | fix |
+|---|---|
+| Under egress control, Harbor puts every service without explicit networking into the egress sidecar's network namespace, so `arena` would not resolve. The oracle hid this because `solve.sh` also wrote the fallback file. | MCP is now reached on `localhost:8000` in the default (allowlist) task, with a `corewar-hill-public` variant that uses `arena:8000`. `solve.sh` submits only through MCP, and the oracle was verified end to end (MCP submit → sidecar → verifier = 1.0). |
+| Published warriors not on the hill beat the reference (forjohn 1.12, maelstrom 1.10). | The gate now covers all 581 published warriors. The only exemption is the reference's exact text, so editing it is gated and reproducing it earns exactly 1.0. Wildcard cloud domains were removed from the allowlist. |
+| **"Withheld information."** The 10-warrior sparring pool predicted the hidden hill poorly: r = 0.54 over 36 agent-level warriors. The difficulty could be put down to a bad proxy. | **The sparring pool is now 30 warriors drawn from the same ladder as the hill, with the same strength spread** (`data/split.json`). On the same 36 warriors it correlates r = 0.87 with the hidden hill. It stays black-box. |
+| A false claim in FAILURES.md: in version 1 the highest sparring score was D2, not B. | Corrected. |
+| `os.cpu_count()` sized the battle pool by host CPUs; a timeout counted silently as a loss; the file was read before the size check. | `ARENA_WORKERS` (default 2); one retry with a 4× timeout; size checked first. |
+| `submit` rejections revealed sparring membership. | `submit` no longer gates; only the verifier does. |
+
+**What changed for the agent.**
+- 30 black-box sparring warriors instead of 10.
+- The full-corpus originality rule.
+
+The 10-warrior runs are kept as **version 2** (`runs/v2-small-pool/`). The headline is
+**version 3** (`runs/final-env/`), the environment shipped in `harbor/`.
 
 ## Runs excluded
 

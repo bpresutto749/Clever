@@ -68,11 +68,13 @@ AGENT_NET_ALLOWLIST = """# Agent phase: only common model APIs are reachable (th
 # localhost), so an agent cannot download published warriors. If your model
 # endpoint is not listed, add it at run time: harbor run ... --allow-agent-host <host>
 network_mode = "allowlist"
+# Exact inference hosts only: no general-purpose file hosting (no *.googleapis.com,
+# no *.amazonaws.com). Vertex AI or Bedrock users add their regional host.
 allowed_hosts = [
   "api.anthropic.com", "api.openai.com", "*.openai.azure.com", "openrouter.ai",
-  "generativelanguage.googleapis.com", "*.googleapis.com", "*.amazonaws.com",
-  "api.mistral.ai", "api.deepseek.com", "api.x.ai", "api.together.xyz",
-  "api.fireworks.ai", "api.groq.com", "api.moonshot.ai", "api.z.ai",
+  "generativelanguage.googleapis.com", "api.mistral.ai", "api.deepseek.com",
+  "api.x.ai", "api.together.xyz", "api.fireworks.ai", "api.groq.com",
+  "api.moonshot.ai", "api.z.ai",
 ]
 """
 
