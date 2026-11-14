@@ -39,6 +39,11 @@ agent-level warriors, `results/proxy_check.md`). Frontier agents still plateau b
   their extra minutes raising the visible score and lowering the hidden one (C1: visible
   0.390 → 0.437, hidden 0.391 → 0.373), and the best visible score, 0.489, is 0.018 from
   the reference on the visible pool and 0.089 below it on the hidden hill (FAILURES.md).
+- **The gap is not overfitting.** All 15 Harbor and v3 final warriors score below the
+  reference on the very pool they tuned on, which the reference plays as is. In v4,
+  92% of the hidden-hill gap is already there on the visible pool; the rest, the agents'
+  extra visible-to-hidden drop, is 8%. Picking each run's best submission on the hidden
+  hill with hindsight lifts the v4 mean from 0.713 to 0.741 only (`results/overfit_check.md`).
 
 None of these is a Core War quirk. They are the mistakes coding agents make in everyday
 work: tuning for the tests they can see instead of the behaviour that matters, declaring the
@@ -162,6 +167,7 @@ make test        # regression tests: anchors, determinism, sanitiser, gate, asse
 make eval        # no Docker: reference, baselines, every recorded run (with standard errors)
 make exploits    # exploit and simple-strategy cases through the real verifier, plus stop-early tables
 make trajectories  # every submission of every run on its visible pool and on the hidden hill
+make overfit     # is the gap just overfitting? visible-pool gap vs extra visible-to-hidden drop
 make task lint   # regenerate harbor/corewar-hill(-public) from sources and lint them
 make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/model>   # Docker + API key
 ```

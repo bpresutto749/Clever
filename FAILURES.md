@@ -159,6 +159,36 @@ The agents optimise whatever they can see, with no allowance for how representat
 They never built a held-out set, although the primer says that "a warrior is only as good as
 the set of opponents it was tested against".
 
+### Is the whole gap overfitting? No
+
+Overfitting would make a warrior strong on the visible pool and weak on the hidden hill. The
+agents' warriors are already weak on the visible pool. `exploits/overfit_check.py` splits each
+final warrior's hidden-hill gap to the reference into two parts that add up to it: the gap on
+the visible pool, and the warrior's visible→hidden drop beyond the reference's own (+0.020;
+the reference was fixed before any run and plays both pools as is). Only the second part can
+be overfitting.
+
+| | runs whose final warrior is below the reference on the visible pool | mean hidden-hill gap | already on the visible pool | extra drop | mean reward | with each run's best-hidden submission, picked with hindsight |
+|---|---|---|---|---|---|---|
+| v4 Harbor (shipped) | 5/5 | 0.097 | 0.090 (92%) | +0.007 (8%) | 0.713 | 0.741 |
+| v3 Harbor | 5/5 | 0.100 | 0.122 | −0.021 | 0.704 | 0.708 |
+| v3 local | 5/5 | 0.111 | 0.108 (97%) | +0.003 (3%) | 0.672 | 0.700 |
+
+- **The agents lose on their home ground.** All 15 final warriors score 0.342–0.489 on the
+  pool they tuned on; the reference scores 0.507 there.
+- **Most runs do not overfit at all.** 10 of the 15 drop less from visible to hidden than
+  the reference does (v3 Harbor, as a group, does better on the hidden hill than on the
+  visible pool, relative to the reference).
+- **Where overfitting happens, it is small.** C1, C5 and J2 have extra drops of
+  0.04–0.07 in hill score. Even if every run had stopped at its best hidden-hill
+  submission, which no agent could know, the v4 mean would be 0.741, still 0.26 below the
+  reference.
+- **In the demo run, C5, the drop comes from the design, not the tuning.** Its first scanner,
+  before any tuning, already lost 0.061 from visible to hidden (0.411 → 0.350); tuning then
+  raised the hidden score to 0.398 rather than lowering it.
+
+F3 is real, and it costs a little. F1 is the gap.
+
 ## F4. Naming the noise and selecting on it anyway
 
 Across v2 and v3, most runs wrote that their best-of-many number was inflated, and then

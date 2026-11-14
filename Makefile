@@ -7,7 +7,7 @@ STOP_EARLY_RUNS_V2 = $(shell cat runs/v2-small-pool/start_times.txt 2>/dev/null)
 HARBOR_RUNS = $(shell cat runs/harbor/start_times.txt 2>/dev/null)
 HARBOR_RUNS_V4 = $(shell cat runs/harbor/start_times_v4.txt 2>/dev/null)
 
-.PHONY: all pmars task lint test eval baselines exploits trajectories harbor-reference harbor-nop harbor-agent harbor-all clean
+.PHONY: all pmars task lint test eval baselines exploits trajectories overfit harbor-reference harbor-nop harbor-agent harbor-all clean
 
 all: pmars task test eval
 
@@ -53,6 +53,12 @@ trajectories: pmars
 	$(PY) exploits/trajectories.py --spar data/sparring_small --out trajectories_v2 $(STOP_EARLY_RUNS_V2)
 	$(PY) exploits/trajectories.py --spar data/sparring --out trajectories_harbor $(HARBOR_RUNS)
 	$(PY) exploits/trajectories.py --spar data/sparring --out trajectories_harbor_v4 $(HARBOR_RUNS_V4)
+	$(MAKE) overfit
+
+# Is the gap just overfitting? Splits it into the visible-pool gap and the excess visible->hidden drop
+overfit: pmars
+	$(PY) exploits/overfit_check.py "v4 Harbor (shipped)=results/trajectories_harbor_v4.json" \
+	  "v3 Harbor=results/trajectories_harbor.json" "v3 local=results/trajectories.json"
 
 # Harbor runs (need Docker). Judges' protocol: reference, do-nothing, 3+ agent runs.
 harbor-reference: task

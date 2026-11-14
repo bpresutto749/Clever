@@ -95,6 +95,12 @@ The 10-warrior runs are kept as **version 2** (`runs/v2-small-pool/`). The headl
   already in `results/rescored_dwarf_anchor.md`, and the regenerated files now match them.
 - **`exploits/trajectories.py` accepts `LABEL=DIR:START`**, so Harbor trial directories
   (all named `artifacts`) get readable labels. The scoring is unchanged.
+- **`exploits/overfit_check.py` (`make overfit`) was added after all runs**, to answer the
+  objection that the gap is overfitting to the visible pool (FAILURES.md, F3). It only reads
+  the stored trajectories and scores the reference; it changes no reward.
+- **The reward column of `results/trajectories.md` and `trajectories_v2.md` was rewritten
+  with the Dwarf anchor** (`exploits/trajectories.py --rescore`, no battle rerun). It still
+  held imp-anchor rewards; the visible and hidden scores are unchanged, byte for byte.
 
 ## Changed after the v3 Harbor runs: version 4, a clock
 
