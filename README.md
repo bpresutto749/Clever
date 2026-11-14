@@ -40,8 +40,12 @@ agent-level warriors, `results/proxy_check.md`). Frontier agents still plateau b
   0.390 → 0.437, hidden 0.391 → 0.373), and the best visible score, 0.489, is 0.018 from
   the reference on the visible pool and 0.089 below it on the hidden hill (FAILURES.md).
 
-This is the shape of agent work on anything judged against hidden, adaptive opposition:
-exploit and defence code, bidding agents, code under fuzzing.
+None of these is a Core War quirk. They are the mistakes coding agents make in everyday
+work: tuning for the tests they can see instead of the behaviour that matters, declaring the
+job done while time and room to improve remain, and polishing one solution instead of
+designing a better one. Here each one is measured, against a fixed human bar. The task has
+the shape of any agent work judged against hidden, adaptive opposition: exploit and defence
+code, bidding agents, code under fuzzing.
 
 **How it is scored.**
 - **Hill score.** Each warrior plays 500 rounds against each of the 30 hidden warriors (3
