@@ -178,10 +178,12 @@ make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/mo
   local copy of the arena, with the same instruction, simulator and sparring server
   (reached through `tools/spar.py`, which calls the same MCP tools). Only the ten runs
   in `runs/harbor/` went through Harbor + OpenCode. No non-Claude model was run.
-- **The copy gate can flag a canonical idiom.** One of the 85 recorded submissions, run C1's
-  first (a 12-instruction silk paper, replaced 18 minutes later), is structurally contained
-  at 0.90 in the paper component of a published warrior. No reward was affected
-  (EXPLOITS.md, residual risk 4).
+- **The copy gate was corrected once after the runs (v4.1).** It had flagged one of the 85
+  recorded submissions, run C1's first (a 12-instruction silk paper, replaced 18 minutes
+  later), because its structure matched one building block of a larger published warrior.
+  The rule given to the agent allows published techniques, so the gate now flags structural
+  matches only against half or more of a published warrior. No reported reward changed, and
+  every exploit case still scores 0 (DECISIONS.md, EXPLOITS.md).
 - **Concurrency.** Runs J1–J3 and then J4–J5 ran concurrently, sharing one 2-CPU machine.
   The Harbor trials ran up to 4 at a time on one laptop (Docker Desktop, macOS arm64), so
   their battles shared its CPUs; each trial was still capped at its own 2 CPUs.

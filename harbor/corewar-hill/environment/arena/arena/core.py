@@ -173,24 +173,44 @@ def _structure(ins):
     return out
 
 
-def _block_containment(a, b, min_block):
-    """Share of the shorter sequence covered by contiguous common runs of at least
-    `min_block` instructions (order preserved)."""
+FRAGMENT_SHARE = 0.5
+
+
+def _block_containment(a, b, min_block, whole_only=False):
+    """Containment by contiguous common runs of at least `min_block` instructions (order
+    preserved) between the submission `a` and the published warrior `b`.
+
+    Default: share of the shorter sequence covered, so a copy pasted inside a bigger file
+    and a verbatim piece of a bigger warrior are both caught.
+
+    whole_only=True (used for the structural test, where constants are removed and the
+    standard building blocks of Core War look alike): `b` inside `a`, or `a` being most of
+    `b`, counted only when `a` reproduces at least FRAGMENT_SHARE of `b`. A short
+    submission whose structure matches one building block of a much longer published
+    warrior, such as the silk paper inside a paper/stone switcher, uses a published
+    technique; it is not a copy of that warrior."""
     sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
     covered = sum(bl.size for bl in sm.get_matching_blocks() if bl.size >= min_block)
-    return covered / min(len(a), len(b))
+    if not whole_only:
+        return covered / min(len(a), len(b))
+    of_b, of_a = covered / len(b), covered / len(a)
+    return max(of_b, of_a if of_b >= FRAGMENT_SHARE else 0.0)
 
 
 def copy_match(ins: list[str], ref: list[str]) -> tuple[bool, float, float]:
     """Near-copy test on assembled code with empty-cell padding removed.
 
     exact : instructions with their constants. max(ratio, containment), so a copy
-            pasted inside a bigger file is caught. Flag at >= 0.8.
+            pasted inside a bigger file, or a verbatim piece of a bigger warrior, is
+            caught. Flag at >= 0.8.
     struct: opcodes, modifiers and addressing modes, constants removed, repeated
             lines collapsed. max(ratio, containment by contiguous runs of >= 3),
             for programs with >= 8 distinct structural steps. Flag at >= 0.9. The
             contiguous-run and collapse rules keep decoy blocks and unrolled loops
-            from "containing" a short or repetitive warrior by chance."""
+            from "containing" a short or repetitive warrior by chance. The
+            containment counts only when the submission contains the published
+            warrior or is at least half of it: matching the structure of one building
+            block of a larger warrior is using a published technique (_block_containment)."""
     a, b = _strip(ins), _strip(ref)
     if not a or not b:
         return False, 0.0, 0.0
@@ -201,7 +221,7 @@ def copy_match(ins: list[str], ref: list[str]) -> tuple[bool, float, float]:
     struct = 0.0
     sa, sb = _structure(a), _structure(b)
     if min(len(sa), len(sb)) >= 8:
-        struct = max(difflib.SequenceMatcher(None, sa, sb, autojunk=False).ratio(), _block_containment(sa, sb, 3))
+        struct = max(difflib.SequenceMatcher(None, sa, sb, autojunk=False).ratio(), _block_containment(sa, sb, 3, whole_only=True))
     return (exact >= COPY_EXACT or struct >= COPY_STRUCT), exact, struct
 
 

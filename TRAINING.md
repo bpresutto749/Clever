@@ -64,6 +64,8 @@ training/run_expert_iteration.sh Qwen/Qwen2.5-Coder-7B-Instruct 3 256`, on a fri
 | r2 | 256 | 207 | 0 | 0.161 | 0.220 |
 | r3 | 256 | 218 | 1 | 0.175 | 0.219 |
 
+(The "published copies" column was counted with the v4 gate, before the v4.1 correction.)
+
 Hidden hill, 64 fresh samples per model, scored once (100 rounds per opponent):
 
 | model | valid | mean reward | best-of-64 reward | samples above Dwarf |

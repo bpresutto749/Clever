@@ -65,10 +65,37 @@ def test_copy_gate_catches_published_copies_but_not_originals():
             continue
         if core.nearest_published(ins, gate)["copy"]:
             flagged.add(p.relative_to(ROOT).as_posix())
-    # The one recorded agent submission the gate flags (EXPLOITS.md, residual risk 4): run C1's
-    # first, non-final submission, a 12-instruction silk paper whose structure is contained at
-    # 0.90 in the paper component of Jack in the Box II. Any new flag fails this test.
-    assert flagged == {"runs/harbor/v4-opencode-opus-5.5/corewar-hill__vYa5MUj/artifacts/history/001_a8f68575be385b01.red"}
+    # No recorded agent submission is flagged. Until v4.1 one was: run C1's first, a 12-instruction
+    # silk paper whose structure matched the paper block of Jack in the Box II (DECISIONS.md).
+    assert flagged == set(), sorted(flagged)
+
+
+def test_structural_fragment_is_a_technique_but_verbatim_pieces_and_half_copies_are_copies():
+    import re
+    gate = [ROOT / "data" / "corpus", ROOT / "data" / "hill", ROOT / "data" / "sparring"]
+    c1 = ROOT / "runs/harbor/v4-opencode-opus-5.5/corewar-hill__vYa5MUj/artifacts/history/001_a8f68575be385b01.red"
+    assert not core.nearest_published(core.assemble(c1.read_text())[0], gate)["copy"]
+    # a long published warrior with varied structure
+    big = None
+    for p in sorted((ROOT / "data" / "corpus").rglob("*.red")):
+        ins = [i for i in core.assemble(p.read_text())[0] if i != "DAT.F $0,$0"]
+        if len(ins) >= 40 and len(set(core._structure(ins))) >= 30:
+            big = ins
+            break
+    assert big
+
+    def src(lines):
+        return ";redcode-94\n" + "\n".join(lines) + "\n"
+
+    def retune(lines):          # every constant shifted: defeats the exact test, keeps the structure
+        return [re.sub(r"-?\d+", lambda m: str(int(m.group()) + 7), l) for l in lines]
+
+    piece = big[5:17]
+    assert core.nearest_published(core.assemble(src(piece))[0], gate)["copy"]                 # verbatim piece
+    half = retune(big[: int(len(big) * 0.6)])
+    assert core.nearest_published(core.assemble(src(half))[0], gate)["copy"]                  # retuned 60 %
+    whole = retune(big)
+    assert core.nearest_published(core.assemble(src(whole))[0], gate)["copy"]                 # retuned whole
 
 
 def test_task_keeps_hill_and_sparring_source_out_of_the_agent_image():

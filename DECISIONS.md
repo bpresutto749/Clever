@@ -105,6 +105,12 @@ The 10-warrior runs are kept as **version 2** (`runs/v2-small-pool/`). The headl
 The five v4 runs (C1–C5) are one `-k 5` job, reported in full. The v4 oracle run, made
 before them to check the rebuilt images, scored 1.000.
 
+## Changed after the v4 runs: version 4.1, a copy-gate correction
+
+| change | why, and its effect on the comparison |
+|---|---|
+| **Structural containment counts only for whole or half copies.** The structural test (constants removed) used to flag a submission whose structure is contained in any published warrior. It now flags it only when the submission contains a published warrior or reproduces at least half of one (`arena/core.py`, `FRAGMENT_SHARE = 0.5`). The exact test, with constants, is unchanged: a verbatim piece of a published warrior is still a copy. | **Why:** the gate flagged run C1's first submission, a 12-instruction silk paper whose structure matched the paper block of Jack in the Box II, a 51-instruction p-space switcher between a silk paper and a Tornado bomber (exact similarity 0.25). The instruction says that using published ideas and techniques is fine, so this was the gate being stricter than its own rule. **Effect:** the gate is strictly weaker than before, so no score can fall. No final submission had been flagged, so no reported reward changed. All 35 exploit cases give the same results (`results/exploits.md`), and `tests/test_env.py` now checks that a verbatim piece, a retuned half copy and a retuned whole copy are still flagged. The agent's instruction is unchanged. |
+
 ## Small-model training
 
 The expert-iteration run (TRAINING.md) used the training reward and prompt exactly as
