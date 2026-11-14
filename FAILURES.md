@@ -120,15 +120,16 @@ warrior and dropped them, giving the same reason in their own words:
 The same happened in v1: four lone scanners and one lone paper. In the shipped v4, with
 more time used: two oneshot scanners that switch to a core clear (C1 "Lantern", C5
 "Glance"), two silk papers launched together (C2), a paper with a small stone (C3), and a
-paper, stone and imp spiral started side by side (C4, "Paper Pebble Spiral"). None uses
-p-space or a quick-scan opening, the two parts of the reference's design. Through Harbor, all five
+paper, stone and imp spiral started side by side (C4, "Paper Pebble Spiral"). None opens
+with a quick-scan, the first stage of the reference's design (quick-scan → paper/imp), and
+none uses p-space. Through Harbor, all five
 final warriors are lone silk papers ("Folded Silk", "Folded Crane", "Folded Paper",
 "Origami Fleet", "Mulberry"; none uses p-space). OC1, OC2 and OC4 tried a p-space switch between
 the paper and a stone or a scanner, found it weaker than the paper alone, and dropped it.
 
-The human reference is a composite: its strategy line reads "qscan -> paper/imp". By a
-keyword count of the hill's own strategy lines, qscan appears in 14 of 30 hill warriors and
-imps in 10.
+The human reference is a composite: its strategy line reads "qscan -> paper/imp". On the
+hidden hill, 13 of the 30 warriors name a quick-scan (qscan, QS, Q^n) in their strategy
+lines, and 4 use p-space.
 
 The agents diagnose correctly why a naive composite loses: footprint, decision overhead,
 boot timing. They then treat that as a reason to stop rather than as the engineering problem
