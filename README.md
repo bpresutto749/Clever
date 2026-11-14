@@ -69,6 +69,7 @@ exploit and defence code, bidding agents, code under fuzzing.
 | Claude Sonnet 5.5, version 1, 1 run | — | 0.195 | 0.140 |
 | CodeClash ladder warriors, July 2026 (Opus 4.8 / GPT-5.5 / Sonnet 5 / Gemini 3.5 Flash) | — | 0.083–0.332 | 0.000–0.543 |
 | Best trivial warrior (5-line stone); one-line imp | — | 0.228; 0.165 | 0.237; 0.052 |
+| Qwen2.5-Coder-7B-Instruct after 4 rounds of expert iteration on the environment (base model: 0.000), 64 samples | — | 0.124 mean | 0.032 mean (best 0.060) |
 | Dwarf (the documentation's example; a published warrior, so as a submission the copy gate gives 0) | — | 0.147 | 0.000 |
 | Do-nothing | — | 0.000 | 0.000 |
 
@@ -147,7 +148,7 @@ make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/mo
 |---|---|
 | FAILURES.md | the evidence for each failure mode, in tables and in the agents' own words |
 | EXPLOITS.md | every attack on the reward and what stops it |
-| TRAINING.md | the upgrade path: training a small model on a disjoint training hill |
+| TRAINING.md | training a small model on the environment: Qwen2.5-Coder-7B, expert iteration, base 0.000 → 0.032 on the hidden hill |
 | DECISIONS.md | what was fixed before the agent runs, and what changed after which review |
 | RUN_HARBOR.md | Harbor commands and what to look at in a run |
 | CREDITS.md | pMARS (GPL), CodeClash, Digital Red Queen, and the warrior authors |
@@ -168,4 +169,6 @@ make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/mo
   strength. FAILURES.md reads this as the plateau it is.
 - **What remains to run.**
   - More Harbor + OpenCode runs, and a non-Claude model; see RUN_HARBOR.md.
-  - The small-model training (TRAINING.md) is built and CPU-tested, but needs a GPU.
+  - The small-model training (TRAINING.md) ran once: Qwen2.5-Coder-7B goes from 0.000 to
+    0.032 mean reward on the hidden hill (95% CI of the gain +0.027 to +0.037). It learned
+    to write valid code and converged on the imp, which the reward pays little.

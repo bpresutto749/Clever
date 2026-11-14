@@ -52,13 +52,52 @@ At the end, the script draws 64 fresh samples from the base model and 64 from th
 adapter. It scores both once on the hidden hill and writes a report with the mean reward,
 the best-of-64 and a 95% interval on the difference (`report.py`).
 
-**Status: not run.** It needs one GPU with at least 24 GB, for about 2–4 hours. With Modal
-credits: `pip install modal && modal setup`, then `modal run training/modal_app.py`.
-`training/modal_app.py` builds pMARS in an A100 container and runs the same script; it has
-not been executed either.
-- Every CPU step (pool construction, scoring, selection, report) was tested here on existing
-  warriors.
-- The two GPU scripts (`generate.py`, `sft_lora.py`) compile, but have not been executed.
+**Run: Qwen2.5-Coder-7B-Instruct, 4 rounds × 256 samples** (`bash
+training/run_expert_iteration.sh Qwen/Qwen2.5-Coder-7B-Instruct 3 256`, on a friend's GPU,
+14 November 2026). Every file the run wrote, except the raw generation dumps, is in
+`training/results/qwen2.5-coder-7b-instruct/` (`REPORT.md`, logs, scored samples, SFT sets).
+
+| round | samples | valid | published copies | mean training score | best training score |
+|---|---|---|---|---|---|
+| r0 (base model) | 256 | 81 | 0 | 0.007 | 0.216 |
+| r1 | 256 | 139 | 4 | 0.062 | 0.222 |
+| r2 | 256 | 207 | 0 | 0.161 | 0.220 |
+| r3 | 256 | 218 | 1 | 0.175 | 0.219 |
+
+Hidden hill, 64 fresh samples per model, scored once (100 rounds per opponent):
+
+| model | valid | mean reward | best-of-64 reward | samples above Dwarf |
+|---|---|---|---|---|
+| base | 24 / 64 | 0.000 | 0.000 | 0 / 64 |
+| after expert iteration | 53 / 64 | **0.032** | 0.060 | 49 / 64 |
+
+Difference in mean reward: **+0.032, 95% CI [+0.027, +0.037]** (Welch, normal
+approximation).
+
+**What it learned, read plainly.** The gain is real and outside the noise, but it is small,
+and the reason is visible in the samples:
+- **It learned to write code that assembles:** 24 of 64 valid samples before, 53 after.
+  Most base samples were `DAT` lines that die at once.
+- **It converged on the imp.** 47 of the 53 valid final samples start executing at
+  `mov 0, 1`, the one-line imp that copies itself forward forever, followed by dead code.
+  The imp never kills anything and scores only through ties. Rescored at 500 rounds, the
+  five best final samples reach hidden-hill 0.161–0.169, against 0.160 for a bare
+  `mov 0, 1`.
+- **The best training score did not move** (0.216 → 0.219): expert iteration pulled the mean
+  of the model up to its own best-of-256, as it is designed to, and found nothing beyond it.
+
+**What this shows about the environment.**
+- **The reward has a gradient from zero** that a 7B model can climb with 1,024 samples and
+  four LoRA updates.
+- **The cheapest strategy the reward allows is worth little.** Training found the imp, the
+  textbook degenerate warrior, and the reward pays it 0.04–0.06. Under the earlier imp
+  anchor this run would have shown no gain at all; the anchor was moved to Dwarf before
+  this run, for the reason given in the README, and both readings are stated here.
+- **The distance to the frontier agents (0.70) and the reference (1.0) is the room left.**
+  Getting past the imp needs a model that can write a working bomber, paper or scanner from
+  the reference text, which the 7B model could not do in 4 rounds.
+
+**Not done:** a larger model, more rounds, or the strategy primer in the prompt.
 
 ## Route 2: telling a frontier agent what went wrong (run G, and the primer)
 
