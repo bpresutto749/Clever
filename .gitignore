@@ -1,0 +1,5 @@
+*.o
+pmars/pmars
+harbor/corewar-hill/tests/pmars/pmars
+__pycache__/
+.pytest_cache/
