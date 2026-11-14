@@ -29,9 +29,10 @@ def test_reference_is_elo_number_one():
 
 def test_reward_anchors_match_the_simulator():
     verify = (ROOT / "task_src" / "verify.py").read_text()
-    assert "IMP = 7427 / 45000" in verify and "REF = 21899 / 45000" in verify
+    assert "DWARF = 6637 / 45000" in verify and "REF = 21899 / 45000" in verify
     # 30 opponents x 500 rounds x 3 points = 45000: scores are exact multiples of 1/45000
-    assert round(core.hill_score(core.play_hill(IMP, HILL)) * 45000) == 7427
+    dwarf = (ROOT / "doc" / "example_dwarf.red").read_text()
+    assert round(core.hill_score(core.play_hill(dwarf, HILL)) * 45000) == 6637
     assert round(core.hill_score(core.play_hill(REF, HILL)) * 45000) == 21899
 
 

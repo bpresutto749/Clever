@@ -16,7 +16,7 @@ TRAIN_HILL = sorted((ROOT / "data" / "sparring").glob("*.red")) + sorted((ROOT /
 EVAL_HILL = sorted((ROOT / "data" / "hill").glob("*.red"))
 GATE_DIRS = [ROOT / "data" / "hill", ROOT / "data" / "sparring"]
 CORPUS = [ROOT / "data" / "corpus"]
-IMP, REF = 7427 / 45000, 21899 / 45000
+DWARF, REF = 6637 / 45000, 21899 / 45000
 
 DOC_FILES = ["index.md", "opcodes.md", "modifiers.md", "addressing_modes.md", "labels.md", "operands.md", "metadata.md"]
 
@@ -63,7 +63,7 @@ def score_many(sources, hill, rounds=50, workers=None):
 
 
 def reward(hill_score):
-    return max(0.0, (hill_score - IMP) / (REF - IMP))
+    return min(1.0, max(0.0, (hill_score - DWARF) / (REF - DWARF)))
 
 
 def write_jsonl(path, rows):

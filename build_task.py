@@ -31,14 +31,14 @@ keywords = ["core-war", "redcode", "adversarial-program-synthesis", "generalizat
 
 [metadata]
 category = "adversarial program synthesis"
-difficulty_explanation = "Frontier agents write working scanners but tune them against the 10 visible sparring warriors, overfit, and stop early; a human expert warrior generalizes. Scores are deterministic (pMARS fixed position series)."
+difficulty_explanation = "With an exact simulator, a strategy primer and 30 black-box sparring warriors drawn from the same ladder as the hidden hill, frontier agents converge on one tuned archetype (a lone paper, stone or scanner), abandon composites, stop with budget left, and stay below a human expert warrior even on the opponents they can see. Scores are deterministic (pMARS fixed position series)."
 reference = "Toxic by John Metcalf, #1 of 264 human warriors on the CodeClash CC:Ladder Elo ranking (chosen before any agent run)"
 reference_hill_score = 0.486
 
 [verifier]
 timeout_sec = 900.0
 environment_mode = "separate"
-network_mode = "no-network"
+{verifier_network}
 
 [agent]
 timeout_sec = 2700.0
@@ -150,7 +150,7 @@ WORKDIR /tests
 
 TEST_SH = """#!/bin/bash
 # Scores the submission on the hidden hill (see verify.py). Always writes
-# /logs/verifier/reward.json.
+# /logs/verifier/reward.txt (one number in [0, 1]) and details.json.
 set -uo pipefail
 if [ ! -x /tests/pmars/pmars ]; then make -C /tests/pmars pmars >/dev/null 2>&1; fi
 python3 /tests/verify.py
@@ -212,7 +212,9 @@ def build(OUT, agent_network, mcp_url):
     shutil.copy(ROOT / "task_src" / "spar.py", env / "spar.py")
     # task files
     health = mcp_url.replace("/mcp", "/health")
+    verifier_net = 'network_mode = "no-network"' if "allowlist" in agent_network else "# public variant: the verifier inherits the public baseline, because enforcing no-network\n# needs Harbor's egress control, which this variant exists to do without"
     (OUT / "task.toml").write_text(TASK_TOML.replace("{variant}", OUT.name).replace("{agent_network}", agent_network)
+                                   .replace("{verifier_network}", verifier_net)
                                    .replace("{mcp_url}", mcp_url).replace("{health_url}", health))
     shutil.copy(ROOT / "task_src" / "instruction.md", OUT / "instruction.md")
     # verifier: hidden hill + corpus live only here

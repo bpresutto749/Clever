@@ -24,10 +24,10 @@ Against each hill warrior, your warrior plays 500 rounds. Per round, a win is wo
 points, a tie 1 and a loss 0. Your hill score is your mean points per round over the whole
 hill, divided by 3, so 1 means every round was won.
 
-The reward rescales the hill score so that a one-line imp (`mov.i #0, 1`, hill score
-0.1650) gets 0 and a strong human-written warrior (hill score 0.4866) gets 1:
+The reward rescales the hill score so that Dwarf, the classic bomber in `doc/example_dwarf.red`
+(hill score 0.1475), gets 0 and a strong human-written warrior (hill score 0.4866) gets 1:
 
-    reward = min(1, max(0, (hill score - 0.1650) / (0.4866 - 0.1650)))
+    reward = min(1, max(0, (hill score - 0.1475) / (0.4866 - 0.1475)))
 
 ## Validity
 

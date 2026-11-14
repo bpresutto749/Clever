@@ -73,14 +73,14 @@ It contains no warrior code and no hidden-hill content.
 
 | | reward |
 |---|---|
-| G | 0.700 |
-| fresh Opus runs of the same version (A, B, C, D2, E2) | 0.643–0.933 (mean 0.732) |
+| G | 0.716 |
+| fresh Opus runs of the same version (A, B, C, D2, E2) | 0.661–0.936 (mean 0.746) |
 
 G followed the method advice and built a composite, which no fresh v1 run did. It still
 stopped at 28 of 45 minutes.
 
 **Versions 2 and 3** give every run `doc/strategy_primer.md`, which carries the same
-general advice. Their means are 0.572 and 0.653, and the failure modes of FAILURES.md
+general advice. Their means are 0.595 and 0.671, and the failure modes of FAILURES.md
 persist.
 
 Prompting changes the agents' process, not their result. That is the case for using the

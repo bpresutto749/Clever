@@ -33,28 +33,44 @@ exploit and defence code, bidding agents, code under fuzzing.
 **How it is scored.**
 - **Hill score.** Each warrior plays 500 rounds against each of the 30 hidden warriors (3
   points per win, 1 per tie). The hill score is the mean points per round / 3.
-- **Reward.** The verifier writes `reward = clip((hill − 0.1650) / (0.4866 − 0.1650), 0, 1)`
-  to `/logs/verifier/reward.txt`. A one-line imp gets 0, and the human reference (Toxic,
-  John Metcalf, Elo #1 of 264 humans, fixed before any agent run) gets 1.
+- **Reward.** The verifier writes `reward = clip((hill − 0.1475) / (0.4866 − 0.1475), 0, 1)`
+  to `/logs/verifier/reward.txt`.
+  - Dwarf gets 0. It is A. K. Dewdney's classic bomber and the example warrior in the agent's
+    own documentation.
+  - The human reference gets 1. It is Toxic, by John Metcalf, Elo #1 of 264 humans, fixed
+    before any agent run.
+  - The upper clip at 1 is the challenge's [0, 1] rule; no run comes near it.
 - **Reproducibility.** Scores are deterministic: pMARS fixed position series, standard error
   about ±0.01.
 - **Copies.** A near-copy of any of 581 published warriors scores 0.
+- **The zero point was changed after the fact.** Until all 17 recorded runs had been scored,
+  including the five final runs (J1–J5), the zero point was a one-line imp (`mov.i #0, 1`,
+  hill 0.1650). It is now Dwarf (hill 0.1475).
+  - Why: the imp never kills anything and scores only through ties, which makes it a
+    degenerate zero. Dwarf is the canonical first warrior and the very example the agent is
+    handed, so reward 0 now reads "no better than the textbook example".
+  - Every reward was recomputed from the stored raw hill scores, without rerunning any agent
+    (`exploits/rescore_anchor.py` → `results/rescored_dwarf_anchor.md`).
+  - Both anchors are affine maps of the same raw score, so the order of the runs is unchanged.
+    Every agent's reward rises slightly (v3 mean 0.653 → 0.671), and the gap to the reference
+    in raw hill score is untouched.
 
 ## Results
 
 | | visible pool (30) | hidden-hill score | reward |
 |---|---|---|---|
 | **Human reference** (Toxic) | 0.507 | 0.487 | **1.000** |
-| **Claude Opus 5.5, shipped environment, 5 fresh runs × 45 min** | 0.349–0.455 | 0.320–0.394 | **0.653** (95% CI 0.53–0.78; all 5 ≤ 0.713) |
-| Claude Opus 5.5, version 2 (10 black-box sparring), 5 runs | — | 0.309–0.401 | 0.572 (CI 0.41–0.74) |
-| Claude Opus 5.5, version 1 (10 visible sparring sources, no primer), 5 runs | — | 0.372–0.465 | 0.732 (CI 0.59–0.88) |
-| Claude Sonnet 5.5, version 1, 1 run | — | 0.195 | 0.093 |
-| CodeClash ladder warriors, July 2026 (Opus 4.8 / GPT-5.5 / Sonnet 5 / Gemini 3.5 Flash) | — | 0.083–0.332 | 0.000–0.518 |
-| Best trivial or textbook warrior (5-line stone) | — | 0.228 | 0.195 |
+| **Claude Opus 5.5, shipped environment, 5 fresh runs × 45 min** | 0.349–0.455 | 0.320–0.394 | **0.671** (95% CI 0.55–0.79; all 5 ≤ 0.728) |
+| Claude Opus 5.5, version 2 (10 black-box sparring), 5 runs | — | 0.309–0.401 | 0.595 (CI 0.44–0.75) |
+| Claude Opus 5.5, version 1 (10 visible sparring sources, no primer), 5 runs | — | 0.372–0.465 | 0.746 (CI 0.61–0.88) |
+| Claude Sonnet 5.5, version 1, 1 run | — | 0.195 | 0.140 |
+| CodeClash ladder warriors, July 2026 (Opus 4.8 / GPT-5.5 / Sonnet 5 / Gemini 3.5 Flash) | — | 0.083–0.332 | 0.000–0.543 |
+| Best trivial warrior (5-line stone); one-line imp | — | 0.228; 0.165 | 0.237; 0.052 |
+| Dwarf (the documentation's example; a published warrior, so as a submission the copy gate gives 0) | — | 0.147 | 0.000 |
 | Do-nothing | — | 0.000 | 0.000 |
 
 None of the 17 Opus or Sonnet runs, across three environment versions, reached the reference.
-The best reached 0.933. Every number comes from `make eval` (`results/eval.md`). Run
+The best reached 0.936. Every number comes from `make eval` (`results/eval.md`). Run
 histories, agents' working directories and their own reports are in `runs/`.
 
 ## How the environment works
@@ -116,6 +132,11 @@ make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/mo
   a local copy of the arena, with the same instruction, simulator and sparring server
   (reached through `tools/spar.py`, which calls the same MCP tools). They were not made
   through Harbor + OpenCode, and no non-Claude model was run.
+- **Concurrency.** Runs J1–J3 and then J4–J5 ran concurrently, sharing one 2-CPU machine.
+  Harbor gives each trial its own 2 CPUs.
+- **Stop-early.** A frontier model's 5-minute draft is already a working warrior: stop-early
+  at 5 minutes earns 0.50 on average, against 0.67 for the full runs. FAILURES.md reads this
+  as the plateau it is.
 - **What remains to run.**
   - A Harbor + OpenCode run log is the first thing to add; see RUN_HARBOR.md.
   - The small-model training (TRAINING.md) is built and CPU-tested, but needs a GPU.

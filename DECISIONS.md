@@ -23,7 +23,7 @@ gap was not tuned after the fact.
 | **Rounds per opponent: 60 → 100.** Runs A–C were told 60. | Deterministic either way; only the precision of the estimate changes. Later raised to 500 (next section); all numbers in this repo now use 500. |
 | **Reward rescaled.** `(hill − imp) / (reference − imp)` instead of the raw hill score. | An affine map: no ranking or gap test changes. We did it because a one-line imp collects 0.158 raw from ties, which would make "simple strategies earn little" hard to read. |
 | **Copy gate: false positive fixed.** The first gate flagged run B's original warrior as a "copy". Its 40 decoy lines happened to contain the opcode pattern of a short published warrior. | Structural containment was removed. Exact containment was kept. |
-| **Copy gate: scope narrowed.** It now zeroes only copies of hill or sparring warriors, and only reports the rest of the 581-warrior corpus. | The reference itself is a near-relative of another published warrior (Mercenary, similarity 0.88). A whole-corpus gate would have needed a whitelist for it (see EXPLOITS.md). |
+| **Copy gate: scope narrowed** (later reversed, see review 2). It zeroed only copies of hill or sparring warriors and reported the rest of the 581-warrior corpus. | At the time we believed the reference would be flagged against its relative Mercenary. Measured with the final gate, Toxic vs Mercenary is exact 0.775, structural 0.88, so it is not flagged. The real conflict is that `toxic.red` itself is in the corpus, which the exact-text exemption of review 2 resolves. |
 | **Hill selection rule removed from the agent instruction.** | With internet access, an agent could otherwise reconstruct the hidden hill from the public ladder. |
 
 ## Changed after the first adversarial review (35/100), before the version-2 runs
@@ -39,7 +39,7 @@ A fresh critic agent broke version 1. Every fix below is covered by a regression
 | The agent phase had public network access, and 6 public warriors not on the hill beat the reference. | Agent phase on an **allowlist** (sidecar + model APIs; extend with `--allow-agent-host`). |
 | At 100 rounds, a cosmetic edit that re-draws the `-f` position series moved D2 by up to 0.05 in reward. | **500 rounds** per opponent. The standard error is reported for every score (about ±0.01 in reward). The anchors were recomputed at 500 rounds: imp 0.1650, reference 0.4866. |
 | F3 ("the gap concentrates on imp-based opponents") was not supported by the data. | Claim removed. |
-| `reward.json` carried non-reward keys, which Harbor aggregates. | Only `reward` and `hill_score` remain; everything else is in `details.json`. |
+| `reward.json` carried non-reward keys, which Harbor aggregates. | Only `reward` and `hill_score` remained; everything else went to `details.json`. Later the challenge required a single number in `reward.txt`, which is what the verifier now writes. |
 
 **What changed for the agent.**
 - Sparring warriors became black boxes, reached through MCP or `tools/spar.py`.
@@ -68,6 +68,12 @@ kept as earlier evidence, rescored at 500 rounds.
 
 The 10-warrior runs are kept as **version 2** (`runs/v2-small-pool/`). The headline is
 **version 3** (`runs/final-env/`), the environment shipped in `harbor/`.
+
+## Changed after all runs were scored: the reward's zero point
+
+| change | effect on the comparison |
+|---|---|
+| **Zero point: one-line imp → Dwarf.** The zero point moved from a one-line imp (`mov.i #0, 1`, hill 0.1650) to Dwarf (A. K. Dewdney's classic bomber, `doc/example_dwarf.red`, hill 0.1475). This was decided after all 17 runs had been scored, including the five final runs. | **Why:** the imp never kills and scores only through ties. Dwarf is the canonical first warrior and the example the agent is handed, so reward 0 reads "no better than the textbook example". **Effect:** an affine change of the same raw score, so the order of the runs is unchanged. Every reward was recomputed from the stored raw hill scores without rerunning any agent (`exploits/rescore_anchor.py` → `results/rescored_dwarf_anchor.md`). Agents' rewards rise slightly (v3 mean 0.653 → 0.671); the raw-score gap is unchanged. |
 
 ## Runs excluded
 

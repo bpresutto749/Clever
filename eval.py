@@ -6,7 +6,7 @@ e.g.   python3 eval.py reference=data/reference_toxic.red "opus-5.5=runs/opus-5.
 
 For every warrior: the originality gate (near-copy of a sparring or hill
 warrior -> 0), the raw hill score (mean KotH points / 3) and the reward
-(normalised between a one-line imp and the reference). Per group: mean,
+(normalised between Dwarf = 0 and the reference = 1, clipped to [0, 1]). Per group: mean,
 standard deviation and a 95% t-interval of the reward.
 """
 import argparse
@@ -22,8 +22,9 @@ sys.path.insert(0, str(ROOT))
 from arena import core  # noqa: E402
 
 HILL = sorted((ROOT / "data" / "hill").glob("*.red"))
-GATE = [ROOT / "data" / "hill", ROOT / "data" / "sparring"]
-IMP, REF = 7427 / 45000, 21899 / 45000
+GATE = [ROOT / "data" / "corpus", ROOT / "data" / "hill", ROOT / "data" / "sparring"]   # as the verifier
+REFERENCE_TEXT = (ROOT / "data" / "reference_toxic.red").read_text(errors="replace").replace("\r", "")
+DWARF, REF = 6637 / 45000, 21899 / 45000   # reward anchors: Dwarf = 0, reference = 1
 T95 = {1: 12.71, 2: 4.30, 3: 3.18, 4: 2.78, 5: 2.57, 6: 2.45, 7: 2.36, 8: 2.31, 9: 2.26, 10: 2.23}
 
 
@@ -34,13 +35,14 @@ def score_file(path):
            "length": len(ins), "valid": bool(ins), "copy_of": None, "hill_score": 0.0, "reward": 0.0}
     if ins:
         gate = core.nearest_published(ins, GATE)
-        if gate["copy"]:
+        exempt = src.replace("\r", "") == REFERENCE_TEXT      # the verifier's exact-text exemption
+        if gate["copy"] and not exempt:
             row["copy_of"] = gate["warrior"]
         else:
             res = core.play_hill(src, HILL)
             s = core.hill_score(res)
             row["hill_score"] = round(s, 4)
-            row["reward"] = round(min(1.0, max(0.0, (s - IMP) / (REF - IMP))), 4)
+            row["reward"] = round(min(1.0, max(0.0, (s - DWARF) / (REF - DWARF))), 4)
             # start-position luck: standard error of the hill score if the rounds of each
             # battle were independent random draws (per-round points 1, 1/3 or 0)
             var = 0.0
@@ -50,7 +52,7 @@ def score_file(path):
                 ex2 = (r.wins * 1.0 + r.ties * (1 / 9)) / n
                 var += (ex2 - m * m) / n
             row["hill_se"] = round(math.sqrt(var) / len(res), 4)
-            row["reward_se"] = round(row["hill_se"] / (REF - IMP), 4)
+            row["reward_se"] = round(row["hill_se"] / (REF - DWARF), 4)
     return row
 
 

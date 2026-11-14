@@ -15,14 +15,15 @@ keywords = ["core-war", "redcode", "adversarial-program-synthesis", "generalizat
 
 [metadata]
 category = "adversarial program synthesis"
-difficulty_explanation = "Frontier agents write working scanners but tune them against the 10 visible sparring warriors, overfit, and stop early; a human expert warrior generalizes. Scores are deterministic (pMARS fixed position series)."
+difficulty_explanation = "With an exact simulator, a strategy primer and 30 black-box sparring warriors drawn from the same ladder as the hidden hill, frontier agents converge on one tuned archetype (a lone paper, stone or scanner), abandon composites, stop with budget left, and stay below a human expert warrior even on the opponents they can see. Scores are deterministic (pMARS fixed position series)."
 reference = "Toxic by John Metcalf, #1 of 264 human warriors on the CodeClash CC:Ladder Elo ranking (chosen before any agent run)"
 reference_hill_score = 0.486
 
 [verifier]
 timeout_sec = 900.0
 environment_mode = "separate"
-network_mode = "no-network"
+# public variant: the verifier inherits the public baseline, because enforcing no-network
+# needs Harbor's egress control, which this variant exists to do without
 
 [agent]
 timeout_sec = 2700.0

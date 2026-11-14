@@ -9,7 +9,7 @@
     "hill_score": 0.4866,
     "reward": 1.0,
     "hill_se": 0.0025,
-    "reward_se": 0.0078
+    "reward_se": 0.0074
    }
   ],
   "summary": {
@@ -27,9 +27,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.394,
-    "reward": 0.7119,
+    "reward": 0.7268,
     "hill_se": 0.0026,
-    "reward_se": 0.0081
+    "reward_se": 0.0077
    },
    {
     "file": "runs/final-env/opus-5.5/run_J2.red",
@@ -37,9 +37,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3748,
-    "reward": 0.6521,
+    "reward": 0.6701,
     "hill_se": 0.0034,
-    "reward_se": 0.0106
+    "reward_se": 0.01
    },
    {
     "file": "runs/final-env/opus-5.5/run_J3.red",
@@ -47,9 +47,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.32,
-    "reward": 0.4818,
+    "reward": 0.5086,
     "hill_se": 0.003,
-    "reward_se": 0.0093
+    "reward_se": 0.0088
    },
    {
     "file": "runs/final-env/opus-5.5/run_J4.red",
@@ -57,9 +57,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3931,
-    "reward": 0.7091,
+    "reward": 0.7242,
     "hill_se": 0.0027,
-    "reward_se": 0.0084
+    "reward_se": 0.008
    },
    {
     "file": "runs/final-env/opus-5.5/run_J5.red",
@@ -67,18 +67,18 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3943,
-    "reward": 0.7128,
+    "reward": 0.7276,
     "hill_se": 0.0026,
-    "reward_se": 0.0081
+    "reward_se": 0.0077
    }
   ],
   "summary": {
    "n": 5,
-   "mean": 0.6535,
-   "sd": 0.0994,
+   "mean": 0.6715,
+   "sd": 0.0942,
    "ci95": [
-    0.53,
-    0.7771
+    0.5543,
+    0.7886
    ]
   }
  },
@@ -90,9 +90,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.4008,
-    "reward": 0.7331,
+    "reward": 0.7469,
     "hill_se": 0.0023,
-    "reward_se": 0.0072
+    "reward_se": 0.0068
    },
    {
     "file": "runs/v2-small-pool/opus-5.5/run_H2.red",
@@ -100,9 +100,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3187,
-    "reward": 0.4777,
+    "reward": 0.5047,
     "hill_se": 0.0031,
-    "reward_se": 0.0096
+    "reward_se": 0.0091
    },
    {
     "file": "runs/v2-small-pool/opus-5.5/run_H3.red",
@@ -110,9 +110,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3086,
-    "reward": 0.4463,
+    "reward": 0.475,
     "hill_se": 0.0032,
-    "reward_se": 0.01
+    "reward_se": 0.0094
    },
    {
     "file": "runs/v2-small-pool/opus-5.5/run_H4.red",
@@ -120,9 +120,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3291,
-    "reward": 0.5102,
+    "reward": 0.5356,
     "hill_se": 0.0025,
-    "reward_se": 0.0078
+    "reward_se": 0.0074
    },
    {
     "file": "runs/v2-small-pool/opus-5.5/run_H5.red",
@@ -130,18 +130,18 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3884,
-    "reward": 0.6946,
+    "reward": 0.7104,
     "hill_se": 0.0027,
-    "reward_se": 0.0084
+    "reward_se": 0.008
    }
   ],
   "summary": {
    "n": 5,
-   "mean": 0.5724,
-   "sd": 0.1318,
+   "mean": 0.5945,
+   "sd": 0.125,
    "ci95": [
-    0.4085,
-    0.7363
+    0.4391,
+    0.7499
    ]
   }
  },
@@ -153,9 +153,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.375,
-    "reward": 0.653,
+    "reward": 0.6709,
     "hill_se": 0.0033,
-    "reward_se": 0.0103
+    "reward_se": 0.0097
    },
    {
     "file": "runs/opus-5.5/run_B.red",
@@ -163,9 +163,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3718,
-    "reward": 0.6428,
+    "reward": 0.6613,
     "hill_se": 0.0033,
-    "reward_se": 0.0103
+    "reward_se": 0.0097
    },
    {
     "file": "runs/opus-5.5/run_C.red",
@@ -173,9 +173,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3913,
-    "reward": 0.7036,
+    "reward": 0.719,
     "hill_se": 0.0032,
-    "reward_se": 0.01
+    "reward_se": 0.0094
    },
    {
     "file": "runs/opus-5.5/run_D2.red",
@@ -183,9 +183,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.4651,
-    "reward": 0.9331,
+    "reward": 0.9366,
     "hill_se": 0.0037,
-    "reward_se": 0.0115
+    "reward_se": 0.0109
    },
    {
     "file": "runs/opus-5.5/run_E2.red",
@@ -193,18 +193,18 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3986,
-    "reward": 0.7263,
+    "reward": 0.7405,
     "hill_se": 0.0025,
-    "reward_se": 0.0078
+    "reward_se": 0.0074
    }
   ],
   "summary": {
    "n": 5,
-   "mean": 0.7318,
-   "sd": 0.1178,
+   "mean": 0.7457,
+   "sd": 0.1117,
    "ci95": [
-    0.5853,
-    0.8782
+    0.6068,
+    0.8845
    ]
   }
  },
@@ -216,14 +216,14 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3903,
-    "reward": 0.7003,
+    "reward": 0.7158,
     "hill_se": 0.0032,
-    "reward_se": 0.01
+    "reward_se": 0.0094
    }
   ],
   "summary": {
    "n": 1,
-   "mean": 0.7003,
+   "mean": 0.7158,
    "sd": null,
    "ci95": null
   }
@@ -236,14 +236,14 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.1951,
-    "reward": 0.0934,
+    "reward": 0.1403,
     "hill_se": 0.0023,
-    "reward_se": 0.0072
+    "reward_se": 0.0068
    }
   ],
   "summary": {
    "n": 1,
-   "mean": 0.0934,
+   "mean": 0.1403,
    "sd": null,
    "ci95": null
   }
@@ -256,9 +256,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3265,
-    "reward": 0.5021,
+    "reward": 0.5279,
     "hill_se": 0.0024,
-    "reward_se": 0.0075
+    "reward_se": 0.0071
    },
    {
     "file": "runs/codeclash-ladder-2026-07/gpt-5-5.red",
@@ -266,9 +266,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.3316,
-    "reward": 0.518,
+    "reward": 0.5429,
     "hill_se": 0.0028,
-    "reward_se": 0.0087
+    "reward_se": 0.0083
    },
    {
     "file": "runs/codeclash-ladder-2026-07/opus-4-8.red",
@@ -278,7 +278,7 @@
     "hill_score": 0.1402,
     "reward": 0.0,
     "hill_se": 0.002,
-    "reward_se": 0.0062
+    "reward_se": 0.0059
    },
    {
     "file": "runs/codeclash-ladder-2026-07/sonnet-5.red",
@@ -288,16 +288,16 @@
     "hill_score": 0.0828,
     "reward": 0.0,
     "hill_se": 0.0019,
-    "reward_se": 0.0059
+    "reward_se": 0.0056
    }
   ],
   "summary": {
    "n": 4,
-   "mean": 0.255,
-   "sd": 0.2945,
+   "mean": 0.2677,
+   "sd": 0.3092,
    "ci95": [
-    -0.2133,
-    0.7234
+    -0.2239,
+    0.7593
    ]
   }
  },
@@ -321,7 +321,7 @@
     "hill_score": 0.1475,
     "reward": 0.0,
     "hill_se": 0.0023,
-    "reward_se": 0.0072
+    "reward_se": 0.0068
    },
    {
     "file": "baselines/imp.red",
@@ -329,9 +329,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.165,
-    "reward": 0.0,
+    "reward": 0.0518,
     "hill_se": 0.0013,
-    "reward_se": 0.004
+    "reward_se": 0.0038
    },
    {
     "file": "baselines/loop_jmp.red",
@@ -361,7 +361,7 @@
     "hill_score": 0.0688,
     "reward": 0.0,
     "hill_se": 0.0019,
-    "reward_se": 0.0059
+    "reward_se": 0.0056
    },
    {
     "file": "baselines/silk_paper.red",
@@ -369,9 +369,9 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.1623,
-    "reward": 0.0,
+    "reward": 0.0437,
     "hill_se": 0.0022,
-    "reward_se": 0.0068
+    "reward_se": 0.0065
    },
    {
     "file": "baselines/spl_flood.red",
@@ -381,7 +381,7 @@
     "hill_score": 0.0135,
     "reward": 0.0,
     "hill_se": 0.0005,
-    "reward_se": 0.0016
+    "reward_se": 0.0015
    },
    {
     "file": "baselines/stone_spl.red",
@@ -389,18 +389,18 @@
     "valid": true,
     "copy_of": null,
     "hill_score": 0.2278,
-    "reward": 0.195,
+    "reward": 0.2367,
     "hill_se": 0.0025,
-    "reward_se": 0.0078
+    "reward_se": 0.0074
    }
   ],
   "summary": {
    "n": 9,
-   "mean": 0.0217,
-   "sd": 0.065,
+   "mean": 0.0369,
+   "sd": 0.0777,
    "ci95": [
-    -0.0284,
-    0.0717
+    -0.023,
+    0.0968
    ]
   }
  }

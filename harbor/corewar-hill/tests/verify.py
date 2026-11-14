@@ -6,9 +6,9 @@ collects after the run: the last accepted `submit` (arena sidecar), or, if that
 is empty, /app/submission.red from the agent container.
 
 hill_score = mean KotH points per round over the hill / 3, in [0, 1].
-reward = (hill_score - IMP) / (REF - IMP), clipped to [0, 1]: the fraction of the way
-from a one-line imp (`mov.i #0, 1`, hill score 0.1650) to the human
-expert reference Toxic (0.4866). 1.0 = reference level or better. Written as one
+reward = (hill_score - DWARF) / (REF - DWARF), clipped to [0, 1]: the fraction of the
+way from Dwarf, A. K. Dewdney's classic bomber and the example warrior in the agent's
+documentation (hill score 0.1475), to the human expert reference Toxic (0.4866). 1.0 = reference level or better. Written as one
 number to /logs/verifier/reward.txt, as the challenge requires; details.json holds
 the raw hill score, the unclipped value and the per-opponent results.
 It is 0 when the file is missing, does not assemble, or is a near-copy of any
@@ -32,7 +32,7 @@ HILL = sorted((HERE / "data" / "hill").glob("*.red"))
 assert len(HILL) == 30, "hidden hill missing"
 SPARRING = HERE / "data" / "sparring"
 CORPUS = HERE / "data" / "corpus"
-IMP = 7427 / 45000   # hill_score of `mov.i #0, 1` at 500 rounds (0.165044)
+DWARF = 6637 / 45000  # hill_score of Dwarf (doc/example_dwarf.red) at 500 rounds (0.147489)
 REF = 21899 / 45000  # hill_score of the reference, solution/reference.red (0.486644)
 
 
@@ -87,7 +87,7 @@ def main():
             else:
                 res = core.play_hill(src, HILL)
                 score = core.hill_score(res)
-                raw = (score - IMP) / (REF - IMP)
+                raw = (score - DWARF) / (REF - DWARF)
                 reward["reward"] = round(min(1.0, max(0.0, raw)), 6)
                 details["hill_score"] = round(score, 6)
                 details["reward_unclipped"] = round(raw, 6)

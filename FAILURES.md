@@ -25,18 +25,24 @@
 
 ## Headline
 
-| | visible pool | hidden-hill score | reward (0 = one-line imp, 1 = human reference) |
+| | visible pool | hidden-hill score | reward (0 = Dwarf, 1 = human reference) |
 |---|---|---|---|
 | human reference (Toxic, fixed before any run) | 0.507 (v3 pool) | 0.487 | 1.000 |
-| **Opus 5.5, v3, 5 runs** | **0.349–0.455** | 0.320–0.394 | **mean 0.653, 95% CI [0.53, 0.78]**; all ≤ 0.713 |
-| Opus 5.5, v2, 5 runs | | 0.309–0.401 | mean 0.572, CI [0.41, 0.74] |
-| Opus 5.5, v1, 5 runs | | 0.372–0.465 | mean 0.732, CI [0.59, 0.88] |
-| Opus 5.5 + lessons (v1, 1 run) | | 0.390 | 0.700 |
-| Sonnet 5.5 (v1, 1 run) | | 0.195 | 0.093 |
-| CodeClash ladder warriors (Opus 4.8, GPT-5.5, Sonnet 5, Gemini 3.5 Flash) | | 0.083–0.332 | 0.000–0.518 |
+| **Opus 5.5, v3, 5 runs** | **0.349–0.455** | 0.320–0.394 | **mean 0.671, 95% CI [0.55, 0.79]**; all ≤ 0.728 |
+| Opus 5.5, v2, 5 runs | | 0.309–0.401 | mean 0.595, CI [0.44, 0.75] |
+| Opus 5.5, v1, 5 runs | | 0.372–0.465 | mean 0.746, CI [0.61, 0.88] |
+| Opus 5.5 + lessons (v1, 1 run) | | 0.390 | 0.716 |
+| Sonnet 5.5 (v1, 1 run) | | 0.195 | 0.140 |
+| CodeClash ladder warriors (Opus 4.8, GPT-5.5, Sonnet 5, Gemini 3.5 Flash) | | 0.083–0.332 | 0.000–0.543 |
 
-None of the 17 runs reached the reference. The closest is v1's D2 at 0.933, a margin of about
-five combined standard errors. In v3, the margins are 0.29–0.52.
+None of the 17 runs reached the reference.
+- The closest is v1's D2 at 0.936. Its hill score is 0.465 against 0.487, a margin of about
+  four combined standard errors.
+- In v3, the margins are 0.27–0.49 in reward.
+
+Rewards use the Dwarf anchor (README, "The zero point was changed after the fact"). It was
+adopted after all runs had been scored, and every reward was recomputed from the stored raw
+scores (`results/rescored_dwarf_anchor.md`). The order of the runs is unchanged.
 
 ## F1. A plateau below human level, even on the opponents the agent can see
 
@@ -68,7 +74,7 @@ pools (`results/trajectories.md`):
   hidden on average.
 - In every run, the final submission is not the agent's best on the hidden hill. For J2, J4
   and J5 the difference is within noise.
-- J1's is not: it had reward 0.78 at minute 4 and finished at 0.71.
+- J1's is not: it had reward 0.79 at minute 4 and finished at 0.73.
 
 ## F2. Converging on one archetype and abandoning composites
 
@@ -104,7 +110,8 @@ v2 is the same environment with 10 visible opponents (r = 0.57 with the hidden h
 - the hidden score moved **−0.006** (`results/trajectories_v2.md`);
 - run H2 matched the reference's visible score (0.488 vs 0.498) while scoring 0.319 vs 0.487
   hidden;
-- all five agents forecast their reward too high, by 0.06–0.52.
+- every agent projected its hidden score from its sparring score, and all five projections
+  overshot, by 0.02–0.17 in hill score (H2: projected 0.488, actual 0.319).
 
 With v3's faithful pool, the same behaviour transfers partly: +0.038 visible, +0.016 hidden.
 
@@ -141,7 +148,7 @@ G, whose instructions said "use the whole time budget".
 archetype test set, composites, the whole budget.
 - It followed the method advice and built a composite.
 - It stopped at 28 minutes.
-- It scored 0.700, inside the fresh runs' range.
+- It scored 0.716, inside the fresh runs' range.
 
 **v2 and v3** give every run a strategy primer that describes the archetypes, the classic
 triangle, composites and testing practice. The failures persist.
@@ -151,14 +158,14 @@ environment experience (TRAINING.md).
 
 ## The stop-early baseline
 
-Each run's last accepted submission at a cutoff (`results/stop_early.md`, v3):
+Each run's last accepted submission at a cutoff (`results/rescored_dwarf_anchor.md`, v3):
 
 | | 5 min | 10 min | 20 min | final |
 |---|---|---|---|---|
-| mean reward of the 5 v3 runs | 0.49 | 0.54 | 0.68 | 0.65 |
+| mean reward of the 5 v3 runs | 0.50 | 0.57 | 0.69 | 0.67 |
 
 **The early drafts are not trivial programs.**
-- Trivial and textbook programs earn 0.00–0.20.
+- Trivial and textbook programs earn 0.00–0.24.
 - Doing nothing earns 0.
 - A frontier model's 5-minute draft is a working silk paper or stone, which earns about half
   the reference's reward.
