@@ -6,6 +6,11 @@
 | final-env-opus-5.5 | run_J3.red | 11 | 0.320 ± 0.003 | 0.509 ± 0.009 |  |
 | final-env-opus-5.5 | run_J4.red | 21 | 0.393 ± 0.003 | 0.724 ± 0.008 |  |
 | final-env-opus-5.5 | run_J5.red | 20 | 0.394 ± 0.003 | 0.728 ± 0.008 |  |
+| harbor-v4-opencode-opus-5.5 | run_C1.red | 12 | 0.373 ± 0.003 | 0.666 ± 0.010 |  |
+| harbor-v4-opencode-opus-5.5 | run_C2.red | 21 | 0.399 ± 0.003 | 0.741 ± 0.009 |  |
+| harbor-v4-opencode-opus-5.5 | run_C3.red | 21 | 0.382 ± 0.002 | 0.692 ± 0.007 |  |
+| harbor-v4-opencode-opus-5.5 | run_C4.red | 37 | 0.394 ± 0.002 | 0.727 ± 0.007 |  |
+| harbor-v4-opencode-opus-5.5 | run_C5.red | 10 | 0.398 ± 0.004 | 0.740 ± 0.010 |  |
 | harbor-opencode-opus-5.5 | run_OC1.red | 14 | 0.398 ± 0.003 | 0.739 ± 0.008 |  |
 | harbor-opencode-opus-5.5 | run_OC2.red | 13 | 0.397 ± 0.003 | 0.736 ± 0.007 |  |
 | harbor-opencode-opus-5.5 | run_OC3.red | 12 | 0.396 ± 0.002 | 0.732 ± 0.007 |  |
@@ -41,6 +46,7 @@
 |---|---|---|---|---|
 | reference | 1 | 1.000 | - | - |
 | final-env-opus-5.5 | 5 | 0.671 | 0.0942 | [0.5543, 0.7886] |
+| harbor-v4-opencode-opus-5.5 | 5 | 0.713 | 0.0329 | [0.6722, 0.754] |
 | harbor-opencode-opus-5.5 | 5 | 0.704 | 0.0467 | [0.6459, 0.762] |
 | v2-small-pool-opus-5.5 | 5 | 0.595 | 0.125 | [0.4391, 0.7499] |
 | v1-opus-5.5 | 5 | 0.746 | 0.1117 | [0.6068, 0.8845] |

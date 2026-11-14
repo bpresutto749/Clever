@@ -35,7 +35,7 @@ variant: `-p harbor/corewar-hill-public`. See EXPLOITS.md for what that variant 
 |---|---|
 | `verifier/reward.txt` | the reward, one number in [0, 1] |
 | `verifier/details.json` | the raw hill score, the unclipped reward, the closest published warrior, and wins / losses / ties per hidden-hill opponent |
-| `artifacts/events.jsonl` | every battle and submission the agent made, with timestamps |
+| `artifacts/events.jsonl` | every battle and submission the agent made, with timestamps; `clock_start` marks the agent's first call, from which the clock in every reply counts |
 | `artifacts/history/` | the source of every accepted submission |
 | `artifacts/submission.red`, `artifacts/app_submission.red` | the MCP submission and the `/app` fallback |
 | `agent/opencode.txt`, `agent/trajectory.json` | the OpenCode trajectory |

@@ -56,13 +56,19 @@ def test_copy_gate_catches_published_copies_but_not_originals():
         assert core.nearest_published(ins, gate)["copy"]
     placeholder = core.assemble((ROOT / "doc" / "example_dwarf.red").read_text())[0]
     reference = core.assemble((ROOT / "data" / "reference_toxic.red").read_text())[0]
+    flagged = set()
     for p in sorted((ROOT / "runs").rglob("*.red")):
         ins = core.assemble(p.read_text())[0]
         if ins == placeholder:      # some agents submitted the documentation's dwarf as a placeholder
             continue
         if ins == reference:        # the Harbor oracle run submits the reference (exempt by sha in the verifier)
             continue
-        assert not core.nearest_published(ins, gate)["copy"], p
+        if core.nearest_published(ins, gate)["copy"]:
+            flagged.add(p.relative_to(ROOT).as_posix())
+    # The one recorded agent submission the gate flags (EXPLOITS.md, residual risk 4): run C1's
+    # first, non-final submission, a 12-instruction silk paper whose structure is contained at
+    # 0.90 in the paper component of Jack in the Box II. Any new flag fails this test.
+    assert flagged == {"runs/harbor/v4-opencode-opus-5.5/corewar-hill__vYa5MUj/artifacts/history/001_a8f68575be385b01.red"}
 
 
 def test_task_keeps_hill_and_sparring_source_out_of_the_agent_image():

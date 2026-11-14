@@ -96,6 +96,21 @@ The 10-warrior runs are kept as **version 2** (`runs/v2-small-pool/`). The headl
 - **`exploits/trajectories.py` accepts `LABEL=DIR:START`**, so Harbor trial directories
   (all named `artifacts`) get readable labels. The scoring is unchanged.
 
+## Changed after the v3 Harbor runs: version 4, a clock
+
+| change | why, and its effect on the comparison |
+|---|---|
+| **Every arena reply ends with a clock**: minutes used and minutes left of the 45, counted from the agent's first call to the server (`arena/mcp_server.py`; one sentence added to the instruction and to `RULES.md`). | **Why:** in the five v3 Harbor runs the agents stopped after 4–14 minutes, and three said they had run out of time. The agent had no way to read the time left, which a judge could fairly call withheld information. The change gives the agent more information, not less. **Unchanged:** the reward, the anchors, the hidden hill, the sparring pool, the verifier, the copy gate, the 45-minute limit. **Effect:** agents worked 16–33 minutes instead of 4–14; the mean reward went from 0.704 to 0.713. v4 is the shipped version; v3's runs stay in the results. |
+
+The five v4 runs (C1–C5) are one `-k 5` job, reported in full. The v4 oracle run, made
+before them to check the rebuilt images, scored 1.000.
+
+## Small-model training
+
+The expert-iteration run (TRAINING.md) used the training reward and prompt exactly as
+committed before it ran. Its evaluation on the hidden hill was run once, by the script.
+Nothing was rerun or selected after seeing the result.
+
 ## Open choices we considered and rejected
 
 | option | why we rejected it |

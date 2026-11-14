@@ -12,6 +12,8 @@ were left out. No API key appears in any file.
 | `opencode-opus-5.5-no-credit/` | `-a opencode -m anthropic/claude-opus-5-5 -k 1` | not a run: the API refused the first call (empty credit balance); no model output; not counted |
 | `opencode-opus-5.5-run1/` | same, `-k 1` | OC1 |
 | `opencode-opus-5.5-runs2-5/` | same, `-k 4` | OC2–OC5 |
+| `v4-oracle/` | v4 (clock added), `-a oracle` | reward 1.000 |
+| `v4-opencode-opus-5.5/` | v4, `-a opencode -m anthropic/claude-opus-5-5 -k 5` | C1–C5 |
 
 | run | trial directory | agent minutes | reward | hidden-hill score | cost |
 |---|---|---|---|---|---|
@@ -21,7 +23,21 @@ were left out. No API key appears in any file.
 | OC4 | `opencode-opus-5.5-runs2-5/corewar-hill__63vBycW` | 4.4 | 0.632 | 0.362 | $0.52 |
 | OC5 | `opencode-opus-5.5-runs2-5/corewar-hill__bJ7ph5p` | 13.2 | 0.681 | 0.378 | $0.55 |
 
-Mean reward 0.704 (95% CI 0.65–0.76, t with 4 degrees of freedom). OC2–OC5 are numbered by
+Mean reward 0.704 (95% CI 0.65–0.76, t with 4 degrees of freedom).
+
+**v4 (shipped: a clock in every server reply), C1–C5**, numbered by the start of their agent
+phase (C5 waited for a free slot):
+
+| run | trial directory | agent minutes | reward | hidden-hill score | cost |
+|---|---|---|---|---|---|
+| C1 | `v4-opencode-opus-5.5/corewar-hill__vYa5MUj` | 32.7 | 0.666 | 0.373 | $3.06 |
+| C2 | `v4-opencode-opus-5.5/corewar-hill__xtDXjV4` | 22.9 | 0.741 | 0.399 | $2.22 |
+| C3 | `v4-opencode-opus-5.5/corewar-hill__47Js9Lc` | 29.8 | 0.692 | 0.382 | $1.60 |
+| C4 | `v4-opencode-opus-5.5/corewar-hill__RNStjor` | 24.1 | 0.727 | 0.394 | $2.52 |
+| C5 | `v4-opencode-opus-5.5/corewar-hill__X7kqQnj` | 16.5 | 0.740 | 0.398 | $2.35 |
+
+Mean reward 0.713 (95% CI 0.67–0.75). `final-v4/run_C1.red` … `run_C5.red` are copies of the
+scored submissions. OC2–OC5 are numbered by
 the start of their agent phase. All five trials are flagged `NonZeroAgentExitCodeError`
 (OpenCode's `EPIPE` at start-up, exit code 1 after a normal `step_finish`); the verifier ran
 in every one.
@@ -35,5 +51,5 @@ In each trial directory: `verifier/reward.txt` and `verifier/details.json` (the 
 Reproduce the trajectory table (`results/trajectories_harbor.md`):
 
 ```bash
-make trajectories   # or: python3 exploits/trajectories.py --out trajectories_harbor $(cat runs/harbor/start_times.txt)
+make trajectories   # v3: runs/harbor/start_times.txt, v4: runs/harbor/start_times_v4.txt
 ```

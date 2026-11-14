@@ -3,14 +3,16 @@
 ## Evidence
 
 **17 complete agent runs in three versions of the environment, all with 45 minutes, plus
-five runs of the shipped task through the official harness (`harbor run` + OpenCode).**
+ten runs through the official harness (`harbor run` + OpenCode): five on v3, and five on the
+shipped v4, which adds a clock to every server reply.**
 
 | version | visible opponents | primer | runs | where |
 |---|---|---|---|---|
-| **v3 (shipped)** | 30 black-box warriors from the same ladder as the hill (r = 0.83 with the hidden hill over 19 agent-level final warriors; `results/proxy_check.md`) | yes | Opus 5.5 J1–J5 | `runs/final-env/` |
+| v3 | 30 black-box warriors from the same ladder as the hill (r = 0.83 with the hidden hill over 19 agent-level final warriors; `results/proxy_check.md`) | yes | Opus 5.5 J1–J5 | `runs/final-env/` |
 | v2 | 10 black-box warriors (r = 0.57) | yes | Opus 5.5 H1–H5 | `runs/v2-small-pool/` |
 | v1 | the same 10, with their source code visible | no | Opus 5.5 A, B, C, D2, E2; Opus + lessons G; Sonnet 5.5 F | `runs/opus-5.5*`, `runs/sonnet-5.5` |
-| v3, official harness | as v3 | yes | Opus 5.5 via `harbor run` + OpenCode, OC1–OC5 | `runs/harbor/` |
+| **v4 (shipped)**, official harness | as v3, plus a clock (minutes used and left) in every server reply | yes | Opus 5.5 via `harbor run` + OpenCode, C1–C5 | `runs/harbor/v4-*` |
+| v3, official harness | as v3 | yes | Opus 5.5 via `harbor run` + OpenCode, OC1–OC5 | `runs/harbor/opencode-*` |
 
 **What each run leaves behind.**
 - From v2 on, the arena server timestamps every submission and keeps its source
@@ -30,22 +32,25 @@ five runs of the shipped task through the official harness (`harbor run` + OpenC
 | | visible pool | hidden-hill score | reward (0 = Dwarf, 1 = human reference) |
 |---|---|---|---|
 | human reference (Toxic, fixed before any run) | 0.507 (v3 pool) | 0.487 | 1.000 |
-| **Opus 5.5, v3 via `harbor run` + OpenCode, 5 runs** | **0.342–0.422** | 0.362–0.398 | **mean 0.704, 95% CI [0.65, 0.76]**; all ≤ 0.739 |
-| **Opus 5.5, v3, 5 runs** | **0.349–0.455** | 0.320–0.394 | **mean 0.671, 95% CI [0.55, 0.79]**; all ≤ 0.728 |
+| **Opus 5.5, v4 (shipped) via `harbor run` + OpenCode, 5 runs** | **0.382–0.489** | 0.373–0.399 | **mean 0.713, 95% CI [0.67, 0.75]**; all ≤ 0.741 |
+| Opus 5.5, v3 via `harbor run` + OpenCode, 5 runs | 0.342–0.422 | 0.362–0.398 | mean 0.704, CI [0.65, 0.76]; all ≤ 0.739 |
+| Opus 5.5, v3, local harness, 5 runs | 0.349–0.455 | 0.320–0.394 | mean 0.671, CI [0.55, 0.79]; all ≤ 0.728 |
 | Opus 5.5, v2, 5 runs | | 0.309–0.401 | mean 0.595, CI [0.44, 0.75] |
 | Opus 5.5, v1, 5 runs | | 0.372–0.465 | mean 0.746, CI [0.61, 0.88] |
 | Opus 5.5 + lessons (v1, 1 run) | | 0.390 | 0.716 |
 | Sonnet 5.5 (v1, 1 run) | | 0.195 | 0.140 |
 | CodeClash ladder warriors (Opus 4.8, GPT-5.5, Sonnet 5, Gemini 3.5 Flash) | | 0.083–0.332 | 0.000–0.543 |
 
-None of the 22 runs reached the reference.
+None of the 27 runs reached the reference.
 - The closest is v1's D2 at 0.936. Its hill score is 0.465 against 0.487, a margin of about
   four combined standard errors.
-- In v3, the margins are 0.27–0.49 in reward locally and 0.26–0.37 through Harbor.
+- In the shipped v4, the margins are 0.26–0.33 in reward. In v3, 0.27–0.49 locally and
+  0.26–0.37 through Harbor.
 
 Rewards use the Dwarf anchor (README, "The zero point was changed after the fact"). It was
-adopted after all runs had been scored, and every reward was recomputed from the stored raw
-scores (`results/rescored_dwarf_anchor.md`). The order of the runs is unchanged.
+adopted after the 17 local runs had been scored, and their rewards were recomputed from the
+stored raw scores (`results/rescored_dwarf_anchor.md`); the order of the runs is unchanged.
+All ten Harbor runs came after the change.
 
 ## F1. A plateau below human level, even on the opponents the agent can see
 
@@ -79,6 +84,22 @@ pools (`results/trajectories.md`):
   and J5 the difference is within noise.
 - J1's is not: it had reward 0.79 at minute 4 and finished at 0.73.
 
+**The shipped v4 (clock in every reply) shows the same plateau through Harbor**
+(`results/trajectories_harbor_v4.md`, 500 rounds per opponent):
+
+| run | minutes used | first real draft → final: minute | visible | hidden |
+|---|---|---|---|---|
+| C1 | 32.7 | 0.4 → 30.5 | 0.390 → 0.437 | 0.391 → 0.373 (best: the first) |
+| C2 | 22.9 | 0.5 → 18.8 | 0.330 → 0.382 | 0.349 → 0.399 |
+| C3 | 29.8 | 2.2 → 29.7 | 0.350 → 0.388 | 0.367 → 0.382 (best: 0.411 at minute 13.3) |
+| C4 | 24.1 | 0.4 → 17.8 | 0.334 → 0.388 | 0.326 → 0.394 |
+| C5 | 16.5 | 2.2 → 12.5 | 0.311 → 0.489 | 0.314 → 0.398 |
+
+With the clock, the agents submit a first warrior within their first minutes and work about
+three times longer than without it, yet the final rewards land where v3's did (mean 0.713
+against 0.704). Two of the five finished below their own best hidden score, C3 by 0.086 in
+reward, about eight standard errors.
+
 ## F2. Converging on one archetype and abandoning composites
 
 All five v3 runs built p-space selectors (switch strategy per opponent or after losses), and
@@ -96,7 +117,11 @@ warrior and dropped them, giving the same reason in their own words:
 - J3: a stone.
 - J4, J5: a paper with a stone running in parallel, the simplest possible combination.
 
-The same happened in v1: four lone scanners and one lone paper. Through Harbor, all five
+The same happened in v1: four lone scanners and one lone paper. In the shipped v4, with
+more time used: two oneshot scanners that switch to a core clear (C1 "Lantern", C5
+"Glance"), two silk papers launched together (C2), a paper with a small stone (C3), and a
+paper, stone and imp spiral started side by side (C4, "Paper Pebble Spiral"). None uses
+p-space or a quick-scan opening, the two parts of the reference's design. Through Harbor, all five
 final warriors are lone silk papers ("Folded Silk", "Folded Crane", "Folded Paper",
 "Origami Fleet", "Mulberry"; none uses p-space). OC1, OC2 and OC4 tried a p-space switch between
 the paper and a stone or a scanner, found it weaker than the paper alone, and dropped it.
@@ -120,6 +145,14 @@ v2 is the same environment with 10 visible opponents (r = 0.57 with the hidden h
   overshot, by 0.02–0.17 in hill score (H2: projected 0.488, actual 0.319).
 
 With v3's faithful pool, the same behaviour transfers partly: +0.038 visible, +0.016 hidden.
+
+The shipped v4 has the same 30-warrior pool, and the extra minutes the clock bought went
+partly into the same trap:
+- **C5** reached 0.489 on the visible pool, 0.018 from the reference's 0.507, and 0.398 on
+  the hidden hill, 0.089 below the reference's 0.487.
+- **C1** spent its last 30 minutes raising the visible score from 0.390 to 0.437 while the
+  hidden score fell from 0.391 to 0.373.
+- **C3**'s last resubmission, at minute 29.7, gained 0.004 visible and lost 0.029 hidden.
 
 The agents optimise whatever they can see, with no allowance for how representative it is.
 They never built a held-out set, although the primer says that "a warrior is only as good as
@@ -149,8 +182,9 @@ choice. In the Harbor runs, OC5's last resubmission raised its visible score fro
 All 17 local runs stopped with 10–37 minutes unused, convinced they had converged. That includes
 G, whose instructions said "use the whole time budget".
 
-Through the official harness (`harbor run -p harbor/corewar-hill -a opencode -m
-anthropic/claude-opus-5-5`, `runs/harbor/`), stopping early is the dominant behaviour.
+Through the official harness without a clock (v3; `harbor run -p harbor/corewar-hill -a
+opencode -m anthropic/claude-opus-5-5`, `runs/harbor/opencode-*`), stopping early is the
+dominant behaviour.
 Minutes come from Harbor's `agent_execution` timestamps:
 
 | run | minutes used of 45 | steps | battles | submissions | final reward | what it said about time |
@@ -190,6 +224,24 @@ unused minutes cost them nothing measurable, because the extra minutes of the lo
 bought nothing either: that is the plateau of F1, reached in under 10 minutes and still
 0.26–0.37 below the reference.
 
+**With a clock (v4, shipped).** Every server reply ends with the minutes used and left.
+The agents then work longer, and stop anyway:
+
+| run | minutes used of 45 | steps | battles | submissions | final reward | cost |
+|---|---|---|---|---|---|---|
+| C1 | 32.7 | 92 | 637 | 5 | 0.666 | $3.06 |
+| C2 | 22.9 | 70 | 489 | 4 | 0.741 | $2.22 |
+| C3 | 29.8 | 50 | 568 | 4 | 0.692 | $1.60 |
+| C4 | 24.1 | 67 | 330 | 3 | 0.727 | $2.52 |
+| C5 | 16.5 | 76 | 171 | 5 | 0.740 | $2.35 |
+
+- **No run used the whole budget**: 12–29 minutes were left. None claimed to have run out
+  of time.
+- **C2 ended its report with the clock in view:** "The submission is in place and accepted,
+  with about 22 minutes left on the clock."
+- **The extra time did not buy reward**: 0.713 against 0.704 without the clock, a difference
+  well inside either interval. Stopping early was a symptom of the plateau, not its cause.
+
 ## F6. Telling them does not fix it
 
 **Run G (v1)** received a lessons section derived from F1–F5: validation discipline, an
@@ -211,7 +263,8 @@ Each run's last accepted submission at a cutoff (`results/rescored_dwarf_anchor.
 | | 5 min | 10 min | 20 min | final |
 |---|---|---|---|---|
 | mean reward of the 5 v3 runs | 0.50 | 0.57 | 0.69 | 0.67 |
-| mean reward of the 5 Harbor + OpenCode runs (they had all stopped by minute 14) | 0.65 | 0.71 | 0.70 | 0.70 |
+| mean reward of the 5 v3 Harbor + OpenCode runs (they had all stopped by minute 14) | 0.65 | 0.71 | 0.70 | 0.70 |
+| mean reward of the 5 v4 (shipped) Harbor + OpenCode runs, with the clock | 0.63 | 0.67 | 0.74 | 0.71 |
 
 **The early drafts are not trivial programs.**
 - Trivial and textbook programs earn 0.00–0.24.
