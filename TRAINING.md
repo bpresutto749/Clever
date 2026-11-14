@@ -52,8 +52,10 @@ At the end, the script draws 64 fresh samples from the base model and 64 from th
 adapter. It scores both once on the hidden hill and writes a report with the mean reward,
 the best-of-64 and a 95% interval on the difference (`report.py`).
 
-**Status: not run.** It needs one GPU with at least 24 GB, for about 2–4 hours (for
-example, Modal credits).
+**Status: not run.** It needs one GPU with at least 24 GB, for about 2–4 hours. With Modal
+credits: `pip install modal && modal setup`, then `modal run training/modal_app.py`.
+`training/modal_app.py` builds pMARS in an A100 container and runs the same script; it has
+not been executed either.
 - Every CPU step (pool construction, scoring, selection, report) was tested here on existing
   warriors.
 - The two GPU scripts (`generate.py`, `sft_lora.py`) compile, but have not been executed.
