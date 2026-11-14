@@ -48,7 +48,7 @@ The MCP server `corewar` provides these tools:
 | `battle(source, opponents=None, rounds=100)` | plays your warrior against sparring warriors with the scoring settings (rounds up to 500) |
 | `battle_custom(source, opponent_source, rounds=100)` | plays two warriors of your own against each other |
 | `submit(source)` | sets your final submission. You can submit as often as you like; the last accepted submission is the one scored. |
-| `status` | shows what is currently submitted |
+| `status` | shows the clock and what is currently submitted |
 
 In `/app`:
 
@@ -56,11 +56,12 @@ In `/app`:
 |---|---|
 | `bin/pmars` | the scoring simulator |
 | `doc/` | the Redcode language reference, a beginners' guide, the ICWS '94 draft, the pMARS manual, and `strategy_primer.md`, a short summary of common strategies |
-| `tools/spar.py` | command-line access to the MCP server, for scripted sweeps: `python3 tools/spar.py my.red`, `python3 tools/spar.py --submit my.red` |
+| `tools/spar.py` | command-line access to the MCP server, for scripted sweeps: `python3 tools/spar.py my.red`, `python3 tools/spar.py --submit my.red`, `python3 tools/spar.py --status` |
 | `tools/battle.py` | local battles against warriors you wrote yourself: `python3 tools/battle.py my.red --vs a.red b.red` |
 
 Submit with the `submit` tool (or `tools/spar.py --submit`). If nothing was submitted
 through the server, the file `/app/submission.red` is scored instead.
 
-You have 45 minutes. Do not use the internet. Keep a valid submission in place as you
-work: whatever is submitted when you stop is your result.
+You have 45 minutes. Every reply from the server ends with a clock: minutes used and
+minutes left, counted from your first call to it. Do not use the internet. Keep a valid
+submission in place as you work: whatever is submitted when you stop is your result.

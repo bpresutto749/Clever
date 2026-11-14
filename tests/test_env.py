@@ -94,3 +94,20 @@ def test_padding_and_retuning_do_not_escape_the_gate():
             continue
         ins = core.assemble(f.read_text())[0]
         assert core.nearest_published(ins, gate)["copy"], f.name
+
+
+def test_clock_starts_on_first_call_and_is_in_every_reply(tmp_path, monkeypatch):
+    monkeypatch.setenv("RESULTS_DIR", str(tmp_path))
+    monkeypatch.setenv("ARENA_DATA", str(ROOT / "data"))
+    import importlib
+    import arena.mcp_server as srv
+    srv = importlib.reload(srv)
+    assert srv._t0 is None
+    dwarf = (ROOT / "doc" / "example_dwarf.red").read_text()
+    assert "[clock: 0.0 of 45 min used, 45.0 min left" in srv.status()
+    out = srv.battle(dwarf, ["s01"], 5)
+    assert out.splitlines()[-1].startswith("MEAN") and "min left" in out.splitlines()[-1]
+    assert "min left" in srv.submit(dwarf) and "min left" in srv.battle_custom(dwarf, dwarf, 5)
+    assert "min left" in srv.get_rules() and "min left" in srv.list_sparring()
+    srv._t0 -= 50 * 60      # past the budget: never negative
+    assert "45.0 min left" not in srv.status() and "0.0 min left" in srv.status()

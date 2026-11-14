@@ -54,3 +54,8 @@ range, with ids s01–s30. None of them is on the hill.
 
 They are black boxes: `battle` plays them with exactly the scoring settings (100 rounds by
 default, up to 500), but their source and names are not available.
+
+## Time
+
+You have 45 minutes. Every reply from this server ends with a clock: minutes used and
+minutes left, counted from your first call to the server.
