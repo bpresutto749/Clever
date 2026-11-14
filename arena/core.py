@@ -163,7 +163,14 @@ def _strip(ins):
 
 
 def _structure(ins):
-    return [re.sub(r"-?\d+", "", x) for x in ins]
+    """Opcode, modifier and addressing modes only, with runs of identical lines
+    collapsed: an unrolled copy loop (12 x `MOV.I $,$`) is generic, not a fingerprint."""
+    out = []
+    for x in ins:
+        t = re.sub(r"-?\d+", "", x)
+        if not out or out[-1] != t:
+            out.append(t)
+    return out
 
 
 def _block_containment(a, b, min_block):
@@ -179,10 +186,11 @@ def copy_match(ins: list[str], ref: list[str]) -> tuple[bool, float, float]:
 
     exact : instructions with their constants. max(ratio, containment), so a copy
             pasted inside a bigger file is caught. Flag at >= 0.8.
-    struct: opcodes, modifiers and addressing modes, constants removed. max(ratio,
-            containment by contiguous runs of >= 3 instructions), for programs of
-            >= 8 instructions. Flag at >= 0.9. The contiguous-run requirement keeps
-            long random decoy blocks from "containing" a short warrior by chance."""
+    struct: opcodes, modifiers and addressing modes, constants removed, repeated
+            lines collapsed. max(ratio, containment by contiguous runs of >= 3),
+            for programs with >= 8 distinct structural steps. Flag at >= 0.9. The
+            contiguous-run and collapse rules keep decoy blocks and unrolled loops
+            from "containing" a short or repetitive warrior by chance."""
     a, b = _strip(ins), _strip(ref)
     if not a or not b:
         return False, 0.0, 0.0
@@ -191,8 +199,8 @@ def copy_match(ins: list[str], ref: list[str]) -> tuple[bool, float, float]:
     if min(len(a), len(b)) >= 6:
         exact = max(exact, _block_containment(a, b, 1))
     struct = 0.0
-    if min(len(a), len(b)) >= 8:
-        sa, sb = _structure(a), _structure(b)
+    sa, sb = _structure(a), _structure(b)
+    if min(len(sa), len(sb)) >= 8:
         struct = max(difflib.SequenceMatcher(None, sa, sb, autojunk=False).ratio(), _block_containment(sa, sb, 3))
     return (exact >= COPY_EXACT or struct >= COPY_STRUCT), exact, struct
 

@@ -50,7 +50,7 @@ the best-of-64 and a 95% interval on the difference (`report.py`).
   here on existing warriors.
 - The two GPU scripts (`generate.py`, `sft_lora.py`) compile, but have not been executed.
 
-## Route 2: frontier agent with lessons from FAILURES.md (run G)
+## Route 2: frontier agent with lessons from FAILURES.md (run G, version 1 of the environment)
 
 Run G received `task_src/lessons.md`, appended to the same instruction. Its four points
 are general: treat sparring as validation; build an archetype test set and use random
@@ -60,15 +60,17 @@ and no hidden-hill content.
 | | reward |
 |---|---|
 | G | 0.700 |
-| fresh Opus runs (A, B, C, D2, E2) | 0.657 – 0.929 (mean 0.754) |
+| fresh Opus runs of the same version (A, B, C, D2, E2) | 0.643–0.933 (mean 0.732) |
 
 - G did follow the validation advice.
 - G built a composite, which no fresh run submitted.
 - G still stopped at 28 of 45 minutes.
 
 **Conclusion from one run:** telling the agent what to do changes its process, not its
-result. This supports using the environment as a training signal (Route 1) rather than
-a prompt fix.
+result. The final environment then built the same general advice into
+`doc/strategy_primer.md`, for every run. The gap widened (mean 0.572), and the
+visible-versus-hidden pattern of FAILURES.md F1 held. This supports using the environment
+as a training signal (Route 1) rather than a prompt fix.
 
 ## What a trained agent should learn here
 

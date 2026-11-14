@@ -19,7 +19,70 @@
    "ci95": null
   }
  },
- "opus-5.5": {
+ "final-env-opus-5.5": {
+  "rows": [
+   {
+    "file": "runs/final-env/opus-5.5/run_H1.red",
+    "length": 13,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.4008,
+    "reward": 0.7331,
+    "hill_se": 0.0023,
+    "reward_se": 0.0072
+   },
+   {
+    "file": "runs/final-env/opus-5.5/run_H2.red",
+    "length": 84,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3187,
+    "reward": 0.4777,
+    "hill_se": 0.0031,
+    "reward_se": 0.0096
+   },
+   {
+    "file": "runs/final-env/opus-5.5/run_H3.red",
+    "length": 89,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3086,
+    "reward": 0.4463,
+    "hill_se": 0.0032,
+    "reward_se": 0.01
+   },
+   {
+    "file": "runs/final-env/opus-5.5/run_H4.red",
+    "length": 90,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3291,
+    "reward": 0.5102,
+    "hill_se": 0.0025,
+    "reward_se": 0.0078
+   },
+   {
+    "file": "runs/final-env/opus-5.5/run_H5.red",
+    "length": 32,
+    "valid": true,
+    "copy_of": null,
+    "hill_score": 0.3884,
+    "reward": 0.6946,
+    "hill_se": 0.0027,
+    "reward_se": 0.0084
+   }
+  ],
+  "summary": {
+   "n": 5,
+   "mean": 0.5724,
+   "sd": 0.1318,
+   "ci95": [
+    0.4085,
+    0.7363
+   ]
+  }
+ },
+ "v1-opus-5.5": {
   "rows": [
    {
     "file": "runs/opus-5.5/run_A.red",
@@ -82,7 +145,7 @@
    ]
   }
  },
- "opus-5.5-lessons": {
+ "v1-opus-5.5-lessons": {
   "rows": [
    {
     "file": "runs/opus-5.5-lessons/run_G.red",
@@ -102,7 +165,7 @@
    "ci95": null
   }
  },
- "sonnet-5.5": {
+ "v1-sonnet-5.5": {
   "rows": [
    {
     "file": "runs/sonnet-5.5/run_F.red",
