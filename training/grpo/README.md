@@ -73,3 +73,21 @@ cores: about $0.75/h). On an H100, the smoke run (MLX prompt, T 1.0, few valid s
 about 30 s per step after a 2-3 minute start; steps with more valid warriors take longer,
 since every valid warrior plays 4,500 rounds. The first run (MLX prompt + Dwarf, T 0.8) takes
 about 40 s per step: 200 steps in about 2 h 15 min, about $11.
+
+## Agentic prototype (`agent.py`): not working yet
+
+The real task is agentic: the agent tests drafts with the `spar` tool, reads the results and
+revises. `agent.py` is a first step towards training that loop, set aside at 06:00 on
+15 November 2026.
+
+- **`--mode tools`**: the model may call `spar` itself (TRL's tool support). On
+  Qwen2.5-Coder-7B, no call was ever made. A quarter of the replies wrote a well-formed call,
+  but inside a markdown block, as an explanation to the user. This held even with the format
+  spelled out in the prompt (2 smoke runs, 256 samples).
+- **`--mode two_turn`** (default): the environment runs `spar` on the draft and sends the report
+  back as a user message; the model then writes its final warrior, which is rewarded, and the
+  report's tokens are masked out of the loss (TRL `rollout_func` with `env_mask`). Generation,
+  the spar report and the reward work for all 64 samples of a step. The first optimiser step
+  then fails inside TRL (`shuffle_sequence_dict`: CUDA "index out of bounds"), with and without
+  TRL's importance-sampling correction. Not debugged further.
+- **Left to do**: fix the rollout path, then add a two-turn evaluation on the hidden hill.

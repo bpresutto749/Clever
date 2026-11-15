@@ -20,7 +20,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from reward import Scorer, summary  # noqa: E402  (before vLLM: see Scorer)
 
-from train import ARCHETYPES, PREFILL, source_of, user_text  # noqa: E402
+from train import ARCHETYPES, prompt_text, source_of  # noqa: E402
 
 
 def main():
@@ -40,14 +40,13 @@ def main():
     names = [n for n, _ in ARCHETYPES]
     per = max(1, a.n // len(names))
     for style in a.styles.split(","):
-        prompts = [tok.apply_chat_template([{"role": "user", "content": user_text(style, n)}], tokenize=False,
-                                           add_generation_prompt=True) + PREFILL for n in names]
+        prompts = [prompt_text(tok, style, n) for n in names]
         for pair in a.sampling.split(","):
             t, p = (float(x) for x in pair.split(":"))
             gens = llm.generate(prompts, SamplingParams(n=per, temperature=t, top_p=p, max_tokens=768, seed=1))
             srcs = [source_of(o.text) for g in gens for o in g.outputs]
             res = scorer(srcs)
-            print(json.dumps({"style": style, "temperature": t, "top_p": p, "prompt_tokens": len(tok(prompts[0])["input_ids"]),
+            print(json.dumps({"model": a.model, "style": style, "temperature": t, "top_p": p, "prompt_tokens": len(tok(prompts[0])["input_ids"]),
                               **summary(res)}), flush=True)
 
 

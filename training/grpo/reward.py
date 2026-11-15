@@ -37,10 +37,25 @@ from common import CORPUS, GATE_DIRS, TRAIN_HILL, core, extract  # noqa: E402
 ROUNDS = int(os.environ.get("GRPO_ROUNDS", "50"))
 TIE_WEIGHT = float(os.environ.get("GRPO_TIE_WEIGHT", "0"))
 _HILL = [Path(h) for h in TRAIN_HILL]
+_DWARF = None
+
+
+def dwarf_shape(ins):
+    """'dwarf' if the warrior is the documentation's Dwarf with other constants, 'dwarf_loop' if it
+    contains the Dwarf's loop (structure only: opcodes, modifiers, modes), else None."""
+    global _DWARF
+    if _DWARF is None:
+        src = (Path(core.__file__).resolve().parent.parent / "doc" / "example_dwarf.red").read_text()
+        _DWARF = core._structure(core._strip(core.assemble(src)[0]))
+    st = core._structure(core._strip(ins))
+    if st == _DWARF:
+        return "dwarf"
+    n = len(_DWARF)
+    return "dwarf_loop" if any(st[i:i + n] == _DWARF for i in range(len(st) - n + 1)) else None
 
 
 def score(src, rounds=ROUNDS, tie_weight=TIE_WEIGHT):
-    out = {"valid": False, "copy": None, "wins": 0, "ties": 0, "losses": 0, "points": 0.0, "reward": 0.0}
+    out = {"valid": False, "copy": None, "dwarf_shape": None, "wins": 0, "ties": 0, "losses": 0, "points": 0.0, "reward": 0.0}
     try:
         ins, _ = core.assemble(src)
     except Exception:       # e.g. non-ASCII code: pMARS rejects it and its message is not UTF-8
@@ -53,6 +68,13 @@ def score(src, rounds=ROUNDS, tie_weight=TIE_WEIGHT):
         if g["copy"]:
             out["copy"] = g["warrior"]
             return out
+    # GRPO_GATE_EXAMPLE=1: a variant of the prompt's example (the Dwarf with other constants, or
+    # anything built around its loop) earns 0 in training, so retuning the example does not pay.
+    shape = dwarf_shape(ins)
+    out["dwarf_shape"] = shape
+    if shape and os.environ.get("GRPO_GATE_EXAMPLE") == "1":
+        out["copy"] = f"example:{shape}"
+        return out
     res = core.play_hill(src, _HILL, rounds, workers=1)
     w, t, l = (sum(getattr(r, k) for r in res) for k in ("wins", "ties", "losses"))
     n = max(1, w + t + l)

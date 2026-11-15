@@ -52,8 +52,10 @@ def user_text(style, arch):
 
 
 def prompt_text(tok, style, arch):
+    # Qwen3 thinks before answering unless told not to; the reply here starts inside a code block.
+    extra = {"enable_thinking": False} if "qwen3" in (tok.name_or_path or "").lower() else {}
     return tok.apply_chat_template([{"role": "user", "content": user_text(style, arch)}], tokenize=False,
-                                   add_generation_prompt=True) + PREFILL
+                                   add_generation_prompt=True, **extra) + PREFILL
 
 
 def main():
@@ -75,7 +77,10 @@ def main():
     ap.add_argument("--vllm-memory", type=float, default=0.3)
     ap.add_argument("--workers", type=int, default=os.cpu_count())
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--gate-example", action="store_true", help="Dwarf variants earn 0 in training (reward.py)")
     a = ap.parse_args()
+    if a.gate_example:
+        os.environ["GRPO_GATE_EXAMPLE"] = "1"      # before the scoring processes fork
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -141,7 +146,10 @@ def main():
         report_to="none",
         seed=a.seed,
     )
-    peft = LoraConfig(r=a.lora_r, lora_alpha=2 * a.lora_r, lora_dropout=0.05, target_modules="all-linear", task_type="CAUSAL_LM")
+    # Gemma 4 is multimodal: LoRA goes on its language model only (model.language_model.*).
+    gemma4 = "gemma-4" in a.model.lower()
+    targets = (r".*language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)" if gemma4 else "all-linear")
+    peft = LoraConfig(r=a.lora_r, lora_alpha=2 * a.lora_r, lora_dropout=0.05, target_modules=targets, task_type="CAUSAL_LM")
     (out / "config.json").write_text(json.dumps({
         **vars(a), "samples_per_step": batch,
         "reward": {"rounds": int(os.environ.get("GRPO_ROUNDS", "50")), "tie_weight": float(os.environ.get("GRPO_TIE_WEIGHT", "0"))},
@@ -149,6 +157,18 @@ def main():
     }, indent=1))
 
     trainer = GRPOTrainer(model=a.model, reward_funcs=corewar_reward, args=cfg, train_dataset=ds, peft_config=peft)
+    vg = getattr(trainer, "vllm_generation", None)
+    if gemma4 and vg is not None:
+        # The vision and audio embedders are not trained, and some of their parameter names differ
+        # between transformers and vLLM (embed_vision.pos_embedding): push only the language model.
+        _iter = vg._iter_named_params
+
+        def _language_model_only():
+            for name, param in _iter():
+                if "vision" not in name and "audio" not in name:
+                    yield name, param
+
+        vg._iter_named_params = _language_model_only
     resume = any(out.glob("checkpoint-*"))
     trainer.train(resume_from_checkpoint=True if resume else None)
     trainer.save_model(str(out / "final"))

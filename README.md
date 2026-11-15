@@ -94,6 +94,7 @@ code, bidding agents, code under fuzzing.
 | CodeClash ladder warriors, July 2026 (Opus 4.8 / GPT-5.5 / Sonnet 5 / Gemini 3.5 Flash) | — | 0.083–0.332 | 0.000–0.543 |
 | Best trivial warrior (5-line stone); one-line imp | — | 0.228; 0.165 | 0.237; 0.052 |
 | Qwen2.5-Coder-7B-Instruct after 4 rounds of expert iteration on the environment (base model: 0.000), 64 samples | — | 0.124 mean | 0.032 mean (best 0.060) |
+| Qwen2.5-Coder-7B-Instruct after 200 GRPO steps on the environment (base model: 0.003), 65 samples; 91% of this reward comes from variants of the Dwarf shown in the prompt (training/grpo/RESULTS.md) | — | 0.120 mean | 0.053 mean (best 0.194) |
 | Dwarf (the documentation's example; a published warrior, so as a submission the copy gate gives 0) | — | 0.147 | 0.000 |
 | Do-nothing | — | 0.000 | 0.000 |
 
@@ -203,6 +204,33 @@ make harbor-reference && make harbor-nop && make harbor-agent MODEL=<provider/mo
 | `tests/` | the regression tests (`make test`) |
 | `training/` | the small-model training (TRAINING.md) |
 | `video/`, `media/` | the code that draws the videos, and the videos |
+
+## Related work
+
+- **CodeClash** ([arXiv 2511.00839](https://arxiv.org/abs/2511.00839), Stanford, Princeton and
+  Cornell, ICML 2026).
+  - LLM agents edit codebases that compete in arenas, Core War among them, over multi-round
+    tournaments. The authors report that in one arena the best model lost every round to a
+    static expert-written bot.
+  - Its CC:Ladder is where our hidden hill, sparring pool and reference come from (CREDITS.md).
+  - What differs here: one reward against a fixed hidden hill and a fixed human reference,
+    black-box sparring, a gate on published code, and an account of why agents plateau
+    (FAILURES.md) rather than a ranking of models.
+- **Digital Red Queen** ([arXiv 2601.03335](https://arxiv.org/abs/2601.03335), MIT and Sakana
+  AI, January 2026).
+  - An LLM evolves Core War warriors round after round, each one against all the earlier ones.
+    The evolved warriors become more general against held-out human warriors, and independent
+    runs converge on similar strategies.
+  - It is a search method that produces warriors. This repository is an environment that
+    measures agents, and its training routes change model weights (TRAINING.md).
+  - Our second corpus (317 human warriors) comes from its repository.
+- **Evolved warriors** ([corewar.info](https://corewar.info/evolve.htm)).
+  - Evolutionary search has produced champions on small hills: μGP's White Noise was the first
+    machine-made King of the Hill, on the SAL Tiny Hill in 2004.
+  - corewar.info notes that evolution had yet to prove itself under larger core settings, such
+    as the standard ones this environment uses.
+  - Some evolved warriors are in our corpus: Gymnosperm Trickery was produced by the RedRace
+    evolver.
 
 ## Honest limits
 

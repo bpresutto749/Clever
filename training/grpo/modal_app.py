@@ -79,14 +79,27 @@ def smoke(model: str = MODEL):
           "--workers", "16"])
 
 
+@app.function(timeout=8 * 3600, **GPU)
+def train_agent(run: str = "qwen7b-agent", model: str = MODEL, max_steps: int = 100, extra: str = ""):
+    """Multi-turn GRPO with the `spar` practice tool (agent.py)."""
+    import shutil
+    if max_steps <= 2:
+        shutil.rmtree(f"/out/{run}", ignore_errors=True)      # a smoke run starts from scratch
+    _run(["python", "agent.py", "--model", model, "--out", f"/out/{run}", "--max-steps", str(max_steps),
+          "--workers", "16", *extra.split()])
+
+
 @app.function(timeout=3600, **GPU)
-def probe(n: int = 64, styles: str = "mlx,mlx_dwarf,route1", sampling: str = "1.0:1.0,0.8:0.95"):
+def probe(n: int = 64, styles: str = "mlx,mlx_dwarf,route1", sampling: str = "1.0:1.0,0.8:0.95", model: str = MODEL):
     """Base model only: share of valid and winning samples per prompt and sampling setting."""
-    _run(["python", "probe.py", "--n", str(n), "--styles", styles, "--sampling", sampling])
+    _run(["python", "probe.py", "--model", model, "--n", str(n), "--styles", styles, "--sampling", sampling])
 
 
 @app.function(timeout=2 * 3600, **GPU)
-def evaluate(run: str = "qwen7b-grpo", n: int = 64, adapter: str = ""):
+def evaluate(run: str = "qwen7b-grpo", n: int = 64, adapter: str = "", tag: str = ""):
+    """adapter: a checkpoint directory of the run (e.g. checkpoint-50) instead of final; tag
+    names the output files (e.g. step50.REPORT.md), so the evaluations of a run do not overwrite
+    each other."""
     _run(["python", "evaluate.py", "--run", f"/out/{run}", "--n", str(n), "--workers", "16",
-          *(["--adapter", f"/out/{run}/{adapter}"] if adapter else [])])
-    print(Path(f"/out/{run}/REPORT.md").read_text())
+          *(["--adapter", f"/out/{run}/{adapter}"] if adapter else []), *(["--tag", tag] if tag else [])])
+    print(Path(f"/out/{run}/{tag + '.' if tag else ''}REPORT.md").read_text())

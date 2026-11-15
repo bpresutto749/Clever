@@ -86,10 +86,28 @@ def report(run, base, final):
         L += ["Configuration: `" + json.dumps(json.loads(cfg.read_text())) + "`", ""]
     L += ["## Training (training pool only; reward = share of rounds won, 0 for copies)", ""] + training_curve(run)
     L += ["", "## Held-out evaluation hill (never used for training or selection), fresh samples", "",
-          "| model | samples | valid | copies | mean reward | best-of-n reward | share with reward > 0 |", "|---|---|---|---|---|---|---|"]
+          "| model | samples | valid | copies | mean reward | best-of-n reward | share with reward > 0 | mean raw hill score |",
+          "|---|---|---|---|---|---|---|---|"]
     for name, rows, rw in (("base", base, b), ("after GRPO", final, f)):
+        raw = [r["eval_score"] if r["eval_valid"] and not r["eval_copy"] else 0.0 for r in rows]
         L.append(f"| {name} | {len(rows)} | {sum(r['eval_valid'] for r in rows)} | {sum(r['eval_copy'] for r in rows)} | "
-                 f"{statistics.mean(rw):.4f} | {max(rw):.4f} | {sum(x > 0 for x in rw) / len(rw):.2f} |")
+                 f"{statistics.mean(rw):.4f} | {max(rw):.4f} | {sum(x > 0 for x in rw) / len(rw):.2f} | {statistics.mean(raw):.4f} |")
+    from reward import dwarf_shape
+    from common import core
+    L += ["", "Where the reward comes from (structure of the warriors with reward > 0):", "",
+          "| model | Dwarf with other constants | contains the Dwarf loop | other |", "|---|---|---|---|"]
+    for name, rows in (("base", base), ("after GRPO", final)):
+        tot = sum(r["eval_reward"] for r in rows) or 1.0
+        by = {"dwarf": 0.0, "dwarf_loop": 0.0, None: 0.0}
+        cnt = {"dwarf": 0, "dwarf_loop": 0, None: 0}
+        for r in rows:
+            if r["eval_reward"] > 0:
+                k = dwarf_shape(core.assemble(r["source"])[0])
+                by[k] += r["eval_reward"]; cnt[k] += 1
+        L.append(f"| {name} | {cnt['dwarf']} warriors, {by['dwarf'] / tot:.0%} of the reward | "
+                 f"{cnt['dwarf_loop']}, {by['dwarf_loop'] / tot:.0%} | {cnt[None]}, {by[None] / tot:.0%} |")
+    L += ["", "The reward is 0 for any warrior at or below Dwarf (hill score 0.1475); the raw hill score "
+          "(points / maximum, copies and invalid samples at 0) also shows progress below that line."]
     L += ["", f"Difference in mean reward: {mf - mb:+.4f} (95% CI {mf - mb - 1.96 * se:+.4f} to {mf - mb + 1.96 * se:+.4f}, "
           "Welch normal approximation)", "", "Mean reward by archetype asked:", "", "| archetype | base | after GRPO |", "|---|---|---|"]
     for a, _ in ARCHETYPES:
@@ -108,6 +126,7 @@ def main():
     ap.add_argument("--n", type=int, default=64)
     ap.add_argument("--max-tokens", type=int)
     ap.add_argument("--seed", type=int, default=1000)
+    ap.add_argument("--tag", default="", help="prefix for the output files, e.g. step50 for a checkpoint")
     ap.add_argument("--workers", type=int, default=os.cpu_count())
     a = ap.parse_args()
     run = Path(a.run)
@@ -117,10 +136,13 @@ def main():
     s = sample(model, a.adapter or str(run / "final"), a.n, max_tokens, a.seed, cfg.get("prompt_style", "mlx"),
                cfg.get("temperature", 1.0), cfg.get("top_p", 1.0), cfg.get("top_k", -1) or -1)
     base, final = score(s["base"], a.workers), score(s["final"], a.workers)
-    write_jsonl(run / "base.eval.jsonl", base)
-    write_jsonl(run / "final.eval.jsonl", final)
+    pre = f"{a.tag}." if a.tag else ""
+    write_jsonl(run / f"{pre}base.eval.jsonl", base)
+    write_jsonl(run / f"{pre}final.eval.jsonl", final)
     text = report(run, base, final)
-    (run / "REPORT.md").write_text(text)
+    if a.tag:
+        text = text.replace("# GRPO report:", f"# GRPO report ({a.tag}, adapter {a.adapter}):", 1)
+    (run / f"{pre}REPORT.md").write_text(text)
     print(text)
 
 
