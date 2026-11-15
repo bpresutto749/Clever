@@ -31,6 +31,29 @@ _prompts = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_prompts)
 ARCHETYPES, messages = _prompts.ARCHETYPES, _prompts.messages
 PREFILL, source_of = _prompts.PREFILL, _prompts.source_of
+from common import ROOT, build_prompt  # noqa: E402  (loaded by reward.py)
+
+DWARF = (ROOT / "doc" / "example_dwarf.red").read_text().strip()
+
+
+def user_text(style, arch):
+    """The user message. mlx: training/mlx/prompts.py. mlx_dwarf: the same plus the
+    documentation's Dwarf as a syntax example (a published warrior: a copy scores 0, retuned
+    variants pass the gate). route1: route 1's prompt (task + the full Redcode reference).
+    probe.py measured each on the base model (README)."""
+    if style == "mlx":
+        return messages(arch)[0]["content"]
+    if style == "mlx_dwarf":
+        return (messages(arch)[0]["content"] + "\n\nSYNTAX EXAMPLE (the documentation's Dwarf, a published warrior: "
+                "a copy scores 0)\n```redcode\n" + DWARF + "\n```")
+    if style == "route1":
+        return build_prompt() + f"\n\nWrite a warrior of this kind: {dict(ARCHETYPES)[arch]}."
+    raise ValueError(style)
+
+
+def prompt_text(tok, style, arch):
+    return tok.apply_chat_template([{"role": "user", "content": user_text(style, arch)}], tokenize=False,
+                                   add_generation_prompt=True) + PREFILL
 
 
 def main():
@@ -44,6 +67,10 @@ def main():
     ap.add_argument("--lr", type=float, default=1e-5)
     ap.add_argument("--lora-r", type=int, default=16)
     ap.add_argument("--max-completion", type=int, default=768)
+    ap.add_argument("--prompt-style", default="mlx_dwarf", choices=["mlx", "mlx_dwarf", "route1"])
+    ap.add_argument("--temperature", type=float, default=0.8)
+    ap.add_argument("--top-p", type=float, default=0.95)
+    ap.add_argument("--top-k", type=int, default=512, help="TRL needs top_k > 0 when top_p < 1")
     ap.add_argument("--save-steps", type=int, default=25)
     ap.add_argument("--vllm-memory", type=float, default=0.3)
     ap.add_argument("--workers", type=int, default=os.cpu_count())
@@ -74,7 +101,7 @@ def main():
     # template, then PREFILL ("```redcode\n"). The warrior is what the model writes before it
     # closes the block (source_of). TRL's conversational format cannot prefill a reply.
     tok = AutoTokenizer.from_pretrained(a.model)
-    text = {n: tok.apply_chat_template(messages(n), tokenize=False, add_generation_prompt=True) + PREFILL for n in names}
+    text = {n: prompt_text(tok, a.prompt_style, n) for n in names}
     ds = Dataset.from_list([{"prompt": text[names[i % len(names)]], "arch": names[i % len(names)]} for i in range(n_rows)])
 
     log = open(out / "samples.jsonl", "a")
@@ -99,7 +126,9 @@ def main():
         gradient_accumulation_steps=batch // a.micro_batch,
         num_generations=a.num_generations,
         max_completion_length=a.max_completion,
-        temperature=1.0,
+        temperature=a.temperature,
+        top_p=a.top_p,
+        top_k=a.top_k,
         beta=0.0,
         use_vllm=True,
         vllm_mode="colocate",

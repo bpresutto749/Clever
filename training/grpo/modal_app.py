@@ -27,7 +27,9 @@ image = (
     modal.Image.debian_slim(python_version="3.12")
     .apt_install("gcc", "make", "libc6-dev")
     .pip_install("trl==1.17.1", "vllm==0.31.0", "peft", "datasets")
-    .env({"HF_HOME": "/hf", "PYTHONUNBUFFERED": "1"})
+    # FlashInfer's top-p/top-k sampler is compiled at start-up and needs nvcc, which this image
+    # does not have: vLLM's own sampler is used instead.
+    .env({"HF_HOME": "/hf", "PYTHONUNBUFFERED": "1", "VLLM_USE_FLASHINFER_SAMPLER": "0"})
     .add_local_dir(str(ROOT), remote_path="/repo", ignore=[
         "**/.git/**", "**/*.o", "pmars/pmars", "harbor/**", "runs/**", "media/**", "video/**",
         "jobs/**", "training/grpo/runs/**", "training/mlx/runs/**", "**/.venv*/**"])
@@ -71,8 +73,16 @@ def train(run: str = "qwen7b-grpo", model: str = MODEL, max_steps: int = 150, lr
 def smoke(model: str = MODEL):
     """Two steps of the real configuration: checks the whole loop, gives the time per step and
     the base model's reward distribution (the first two lines of the log)."""
+    import shutil
+    shutil.rmtree("/out/smoke", ignore_errors=True)     # a fresh run, not a resumed one
     _run(["python", "train.py", "--model", model, "--out", "/out/smoke", "--max-steps", "2", "--save-steps", "1000",
           "--workers", "16"])
+
+
+@app.function(timeout=3600, **GPU)
+def probe(n: int = 64, styles: str = "mlx,mlx_dwarf,route1", sampling: str = "1.0:1.0,0.8:0.95"):
+    """Base model only: share of valid and winning samples per prompt and sampling setting."""
+    _run(["python", "probe.py", "--n", str(n), "--styles", styles, "--sampling", sampling])
 
 
 @app.function(timeout=2 * 3600, **GPU)
