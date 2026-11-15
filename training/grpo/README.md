@@ -16,7 +16,7 @@ TRAINING.md.
 | `reward.py` | the training reward: share of rounds won on the training pool (30 sparring + 60 training-hill warriors, 50 rounds each), 0 if the sample does not assemble or is a copy |
 | `train.py` | TRL `GRPOTrainer`: Qwen2.5-Coder-7B-Instruct with a LoRA adapter (r = 16), vLLM generation on the same GPU, 8 prompts x 8 samples per step, every scored sample written to `samples.jsonl` |
 | `evaluate.py` | after training, once: 64 fresh samples from the base model and 64 from the adapter, scored on the hidden hill with the environment's reward (100 rounds, as route 1), REPORT.md |
-| `modal_app.py` | the same on a Modal H100 with 16 CPU cores for pMARS |
+| `modal_app.py` | the same on a Modal A100 80 GB (or H100 with `GRPO_GPU=H100`) with 16 CPU cores for pMARS |
 
 ```bash
 pip install modal && modal setup
@@ -49,7 +49,8 @@ install trl==1.17.1 vllm==0.31.0 peft datasets`, then `make -C pmars pmars`).
 
 ## Cost and time (estimates, to be replaced by the smoke run's numbers)
 
-Modal lists an H100 at $0.001097/s (about $3.95/h) and a CPU core at $0.0000131/s (16
+Modal lists an A100 80 GB at $0.000694/s (about $2.50/h), an H100 at $0.001097/s (about
+$3.95/h; it needs a payment method on the account) and a CPU core at $0.0000131/s (16
 cores: about $0.75/h). Scoring takes about 0.2 s of wall time per sample on 8 cores of an
 Apple M5. One step (64 samples) should take on the order of a minute, so 150 steps are
 about 2.5-3 h and $12-15.

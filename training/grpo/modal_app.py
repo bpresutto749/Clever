@@ -1,4 +1,5 @@
-"""GRPO (training/grpo) on a Modal GPU: one H100 for the model, 16 CPU cores for pMARS.
+"""GRPO (training/grpo) on a Modal GPU (A100 80 GB by default; GRPO_GPU=H100 to change it at
+launch: H100s need a payment method on the Modal account), 16 CPU cores for pMARS.
 
     pip install modal && modal setup                                      # once
     modal run training/grpo/modal_app.py::smoke                           # 2 steps of the real run
@@ -10,6 +11,7 @@
 Runs live on the Modal volume `corewar-grpo` (samples.jsonl, checkpoints, final adapter,
 REPORT.md). The model weights are cached on the volume `corewar-hf-cache`.
 """
+import os
 import subprocess
 import threading
 from pathlib import Path
@@ -31,7 +33,7 @@ image = (
 runs = modal.Volume.from_name("corewar-grpo", create_if_missing=True)
 hf = modal.Volume.from_name("corewar-hf-cache", create_if_missing=True)
 app = modal.App("corewar-grpo", image=image)
-GPU = dict(gpu="H100", cpu=16, memory=65536, volumes={"/out": runs, "/hf": hf})
+GPU = dict(gpu=os.environ.get("GRPO_GPU", "A100-80GB"), cpu=16, memory=65536, volumes={"/out": runs, "/hf": hf})
 
 
 def _run(cmd):
