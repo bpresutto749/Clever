@@ -23,7 +23,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from reward import Scorer, summary  # noqa: E402  (before torch: see Scorer)
 from common import ROOT, core  # noqa: E402  (loaded by reward.py)
-from train import ARCHETYPES, user_text  # noqa: E402
+from train import ARCHETYPES, PREFILL, prompt_text, source_of, user_text  # noqa: E402
 
 SPARRING = sorted((ROOT / "data" / "sparring").glob("*.red"))
 SPAR_ROUNDS = 20
@@ -89,6 +89,60 @@ def final_warrior(messages):
     return ""
 
 
+FEEDBACK = ("Result of `spar` on your warrior:\n{report}\n\nUsing this result, write an improved version of "
+            "the warrior (or keep it if you cannot improve it). Reply with the complete warrior in one ```redcode block.")
+
+
+def make_two_turn_rollout(tok, args):
+    """Turn 1: the model writes a warrior. The environment runs `spar` on it and sends the report as a
+    user message. Turn 2: the model writes its final warrior, which is rewarded. The report's tokens
+    are masked out of the loss (env_mask 0). Both turns are sampled by the trainer's own vLLM engine."""
+    from vllm import SamplingParams
+
+    end_turn = tok("<|im_end|>\n", add_special_tokens=False)["input_ids"]
+
+    def gen(llm, token_prompts, n):
+        sp = SamplingParams(n=n, temperature=args.temperature, top_p=args.top_p, top_k=args.top_k,
+                            max_tokens=args.turn_tokens, logprobs=1)
+        outs = llm.generate([{"prompt_token_ids": p} for p in token_prompts], sp, use_tqdm=False)
+        res = []
+        for o in outs:
+            for c in o.outputs:
+                ids = list(c.token_ids)
+                lps = [lp[t].logprob for t, lp in zip(ids, c.logprobs)]
+                res.append((ids, lps, c.text))
+        return res
+
+    def rollout(prompts, trainer):
+        llm = trainer.vllm_generation.llm
+        n = trainer.num_generations
+        prompt_ids = [tok(p, add_special_tokens=False)["input_ids"] for p in prompts]
+        first = gen(llm, prompt_ids, n)                                   # len(prompts) * n drafts
+        drafts = [source_of(t) for _, _, t in first]
+        reports = list(_POOL.map(spar_report, drafts, chunksize=1))
+        p_ids, c_ids, lps, masks, finals, firsts = [], [], [], [], [], []
+        second_inputs, envs = [], []
+        for i, ((ids1, lp1, t1), rep) in enumerate(zip(first, reports)):
+            base = prompt_ids[i // n]
+            closed = ids1 if t1.rstrip().endswith("```") else ids1 + tok("\n```", add_special_tokens=False)["input_ids"]
+            user = ("<|im_start|>user\n" + FEEDBACK.format(report=rep) + "<|im_end|>\n<|im_start|>assistant\n" + PREFILL)
+            env = end_turn + tok(user, add_special_tokens=False)["input_ids"]
+            envs.append((closed[len(ids1):], env))
+            second_inputs.append(base + closed + env)
+        second = gen(llm, second_inputs, 1)
+        for i, ((ids1, lp1, t1), (pad, env), (ids2, lp2, t2)) in enumerate(zip(first, envs, second)):
+            p_ids.append(prompt_ids[i // n])
+            c_ids.append(ids1 + pad + env + ids2)
+            lps.append(lp1 + [0.0] * (len(pad) + len(env)) + lp2)
+            masks.append([1] * len(ids1) + [0] * (len(pad) + len(env)) + [1] * len(ids2))
+            finals.append(source_of(t2))
+            firsts.append(drafts[i])
+        return {"prompt_ids": p_ids, "completion_ids": c_ids, "logprobs": lps, "env_mask": masks,
+                "final_src": finals, "draft_src": firsts, "spar_report": reports}
+
+    return rollout
+
+
 def main():
     global _POOL
     ap = argparse.ArgumentParser()
@@ -102,6 +156,9 @@ def main():
     ap.add_argument("--lora-r", type=int, default=16)
     ap.add_argument("--max-completion", type=int, default=2560, help="all turns, tool results included")
     ap.add_argument("--max-tool-calls", type=int, default=3)
+    ap.add_argument("--mode", default="two_turn", choices=["two_turn", "tools"],
+                    help="two_turn: draft, spar report, final (default); tools: the model calls spar itself")
+    ap.add_argument("--turn-tokens", type=int, default=768)
     ap.add_argument("--prompt-style", default="mlx_dwarf", choices=["mlx", "mlx_dwarf"])
     ap.add_argument("--temperature", type=float, default=0.8)
     ap.add_argument("--top-p", type=float, default=0.95)
@@ -130,15 +187,25 @@ def main():
     batch = a.prompts_per_step * a.num_generations
     names = [n for n, _ in ARCHETYPES]
     n_rows = max(a.max_steps * a.prompts_per_step, 200)
-    ds = Dataset.from_list([{"prompt": [{"role": "user", "content": user_text(a.prompt_style, names[i % 5]) + TOOL_NOTE}],
-                             "arch": names[i % 5]} for i in range(n_rows)])
+    if a.mode == "tools":
+        ds = Dataset.from_list([{"prompt": [{"role": "user", "content": user_text(a.prompt_style, names[i % 5]) + TOOL_NOTE}],
+                                 "arch": names[i % 5]} for i in range(n_rows)])
+    else:
+        from transformers import AutoTokenizer
+        tok = AutoTokenizer.from_pretrained(a.model)
+        text = {nm: prompt_text(tok, a.prompt_style, nm) for nm in names}
+        ds = Dataset.from_list([{"prompt": text[names[i % 5]], "arch": names[i % 5]} for i in range(n_rows)])
 
     log = open(out / "samples.jsonl", "a")
     calls = {"n": 0, "t": time.time()}
 
-    def corewar_reward(completions, arch=None, **kw):
-        srcs = [final_warrior(c) for c in completions]
-        n_tools = [sum(1 for m in c if m.get("role") == "tool") for c in completions]
+    def corewar_reward(completions, arch=None, final_src=None, draft_src=None, spar_report=None, **kw):
+        if final_src is not None:                       # two-turn mode
+            srcs, n_tools = list(final_src), [1] * len(final_src)
+            completions = [{"draft": d, "report": r} for d, r in zip(draft_src, spar_report)]
+        else:
+            srcs = [final_warrior(c) for c in completions]
+            n_tools = [sum(1 for m in c if m.get("role") == "tool") for c in completions]
         res = scorer(srcs)
         calls["n"] += 1
         for c, s, r, k, ar in zip(completions, srcs, res, n_tools, arch or [None] * len(srcs)):
@@ -154,7 +221,7 @@ def main():
         output_dir=str(out), max_steps=a.max_steps, learning_rate=a.lr,
         per_device_train_batch_size=a.micro_batch, gradient_accumulation_steps=batch // a.micro_batch,
         num_generations=a.num_generations, max_completion_length=a.max_completion,
-        max_tool_calling_iterations=a.max_tool_calls,
+        max_tool_calling_iterations=a.max_tool_calls if a.mode == "tools" else None,
         temperature=a.temperature, top_p=a.top_p, top_k=a.top_k, beta=0.0,
         use_vllm=True, vllm_mode="colocate", vllm_gpu_memory_utilization=a.vllm_memory, vllm_max_model_length=6144,
         bf16=True, gradient_checkpointing=True, logging_steps=1, save_steps=a.save_steps, report_to="none", seed=a.seed,
@@ -164,8 +231,12 @@ def main():
         **vars(a), "samples_per_step": batch, "spar_rounds": SPAR_ROUNDS, "agentic": True,
         "versions": {"trl": trl.__version__, "transformers": transformers.__version__, "torch": torch.__version__},
     }, indent=1))
-    trainer = GRPOTrainer(model=a.model, reward_funcs=corewar_reward, args=cfg, train_dataset=ds, peft_config=peft,
-                          tools=[spar])
+    if a.mode == "tools":
+        trainer = GRPOTrainer(model=a.model, reward_funcs=corewar_reward, args=cfg, train_dataset=ds, peft_config=peft,
+                              tools=[spar])
+    else:
+        trainer = GRPOTrainer(model=a.model, reward_funcs=corewar_reward, args=cfg, train_dataset=ds, peft_config=peft,
+                              rollout_func=make_two_turn_rollout(tok, a))
     trainer.train(resume_from_checkpoint=True if any(out.glob("checkpoint-*")) else None)
     trainer.save_model(str(out / "final"))
     print("saved adapter to", out / "final", flush=True)
