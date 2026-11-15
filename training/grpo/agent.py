@@ -28,9 +28,14 @@ from train import ARCHETYPES, user_text  # noqa: E402
 SPARRING = sorted((ROOT / "data" / "sparring").glob("*.red"))
 SPAR_ROUNDS = 20
 CODE = re.compile(r"```[^\n]*\n(.*?)```", re.S)
+# The model wants to call the tool but writes the call in a markdown code block, which the chat
+# template's parser does not read (agent-smoke, 15 November 2026): the format is spelled out.
 TOOL_NOTE = ("\n\nYou can test drafts before you answer with the `spar` tool: it plays a warrior "
              f"against {len(SPARRING)} practice opponents ({SPAR_ROUNDS} rounds each) and returns its score, "
-             "or the assembler's errors. Use it, read the result, improve the warrior, and test again. "
+             "or the assembler's errors. Test your first draft with it, read the result, improve the warrior, "
+             "and test again if useful. To call the tool, write exactly this, with no code block around it "
+             "(newlines in the source written as \\n):\n"
+             '<tool_call>\n{"name": "spar", "arguments": {"warrior": ";redcode-94\\n;name Draft\\n...your code..."}}\n</tool_call>\n'
              "When you are done, reply with your final warrior in one ```redcode block.")
 
 
