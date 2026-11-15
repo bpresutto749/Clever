@@ -34,6 +34,9 @@ or selection.
 
 ## Route 1: small model, expert iteration (`training/`)
 
+**Summary of all training runs (expert iteration on a GPU cluster, 7B to 32B, and GRPO):
+`RL_SYNTHESIS.md`.** The cluster runs are detailed in `training/CLUSTER_RUNS.md`.
+
 ```
 bash training/run_expert_iteration.sh Qwen/Qwen2.5-Coder-7B-Instruct 3 256
 ```
