@@ -6,8 +6,8 @@ every sample is the learning signal. For each prompt the model writes a group of
 warriors; GRPO raises the probability of the ones that scored above the group's mean and
 lowers the others. That is on-policy RL with a policy gradient, one update per 64 samples.
 
-**Status: set up, not yet run.** Results will go to REPORT.md in the run directory and to
-TRAINING.md.
+**Status: first run (200 steps, Modal H100) started on 15 November 2026 at 03:40.** Results
+will go to REPORT.md in the run directory and to TRAINING.md.
 
 ## What runs
 
@@ -16,12 +16,14 @@ TRAINING.md.
 | `reward.py` | the training reward: share of rounds won on the training pool (30 sparring + 60 training-hill warriors, 50 rounds each), 0 if the sample does not assemble or is a copy |
 | `train.py` | TRL `GRPOTrainer`: Qwen2.5-Coder-7B-Instruct with a LoRA adapter (r = 16), vLLM generation on the same GPU, 8 prompts x 8 samples per step, every scored sample written to `samples.jsonl` |
 | `evaluate.py` | after training, once: 64 fresh samples from the base model and 64 from the adapter, scored on the hidden hill with the environment's reward (100 rounds, as route 1), REPORT.md |
+| `probe.py` | before training: valid and winning samples of the base model for each prompt and sampling setting |
 | `modal_app.py` | the same on a Modal A100 80 GB (or H100 with `GRPO_GPU=H100`) with 16 CPU cores for pMARS |
 
 ```bash
 pip install modal && modal setup
+modal run training/grpo/modal_app.py::probe                          # base model: valid / winning samples per prompt
 modal run training/grpo/modal_app.py::smoke                          # 2 steps: checks the loop, time per step, base reward
-modal run --detach training/grpo/modal_app.py::train --run qwen7b-grpo --max-steps 150
+GRPO_GPU=H100 modal run --detach training/grpo/modal_app.py::train --run qwen7b-grpo --max-steps 200
 modal app logs corewar-grpo                                          # one JSON line per step
 modal run training/grpo/modal_app.py::evaluate --run qwen7b-grpo
 modal volume get corewar-grpo qwen7b-grpo training/grpo/runs/
@@ -42,15 +44,32 @@ install trl==1.17.1 vllm==0.31.0 peft datasets`, then `make -C pmars pmars`).
 - **Copies earn 0,** with the verifier's own gate (`arena/core.py`). That gate also catches a
   published 3-to-5-instruction warrior followed by dead code, which it used to let through
   and which RL would have found.
-- **Same prompts as the MLX run** (`training/mlx/prompts.py`): no warrior code in the prompt,
-  so there is no example to hand back, and one archetype per prompt in turn, so every step
-  asks for stones, papers, scanners, composites and free designs.
+- **Prompt: the MLX run's, plus the documentation's Dwarf as a syntax example; sampling at
+  temperature 0.8, top_p 0.95** (top_k 512, which TRL requires with top_p < 1). GRPO learns
+  only from groups whose rewards differ, so the prompt was chosen by `probe.py` on the base
+  model (60 samples each):
+
+  | prompt | sampling | valid | won a round | best training reward |
+  |---|---|---|---|---|
+  | MLX run's (`training/mlx/prompts.py`) | T 1.0 | 8 | 1.7% | 0.002 |
+  | MLX run's | T 0.8, top_p 0.95 | 24 | 13% | 0.031 |
+  | MLX run's + Dwarf | T 1.0 | 17 | 15% | 0.257 |
+  | **MLX run's + Dwarf** | **T 0.8, top_p 0.95** | **36** | **35%** | 0.196 |
+  | route 1's (task + full Redcode reference, 7,640 tokens) | T 1.0 | 11 | 3.3% | 0.061 |
+  | route 1's | T 0.8, top_p 0.95 | 29 | 5% | 0.027 |
+
+  One archetype per prompt in turn (stone, paper, scanner, stone/imp, free). The cost of the
+  Dwarf: it is a published warrior, so a copy scores 0, but a retuned Dwarf passes the gate
+  and wins rounds (Dwarf itself: 0.197 in wins on the training pool). Training may drift
+  towards Dwarf variants; on the hidden hill Dwarf is the zero point, and the evaluation opens
+  the final warriors to check.
 - **No KL penalty (beta = 0), TRL's default loss.** Learning rate 1e-5 for the adapter.
 
-## Cost and time (estimates, to be replaced by the smoke run's numbers)
+## Cost and time
 
 Modal lists an A100 80 GB at $0.000694/s (about $2.50/h), an H100 at $0.001097/s (about
 $3.95/h; it needs a payment method on the account) and a CPU core at $0.0000131/s (16
-cores: about $0.75/h). Scoring takes about 0.2 s of wall time per sample on 8 cores of an
-Apple M5. One step (64 samples) should take on the order of a minute, so 150 steps are
-about 2.5-3 h and $12-15.
+cores: about $0.75/h). On an H100, the smoke run (MLX prompt, T 1.0, few valid samples) took
+about 30 s per step after a 2-3 minute start; steps with more valid warriors take longer,
+since every valid warrior plays 4,500 rounds. The first run (MLX prompt + Dwarf, T 0.8) takes
+about 40 s per step: 200 steps in about 2 h 15 min, about $11.

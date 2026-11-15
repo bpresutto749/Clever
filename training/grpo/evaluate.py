@@ -3,8 +3,8 @@
 adapter, scored once on the hidden hill with the environment's own reward (0 at Dwarf, 1 at
 the reference), 100 rounds per opponent and the same copy gate as training, as in route 1.
 
-Both models get the same prompts (one per archetype, in turn), the same sampling settings
-as training (temperature 1.0) and the same seeds.
+Both models get the training prompts (one per archetype, in turn), the training's sampling
+settings (config.json) and the same seeds.
 
 usage: evaluate.py --run runs/qwen7b-grpo [--adapter runs/qwen7b-grpo/final] [--n 64]
 writes RUN/base.eval.jsonl, RUN/final.eval.jsonl and RUN/REPORT.md
@@ -22,16 +22,18 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import reward as _reward  # noqa: E402,F401  (loads training/common.py without putting training/ on sys.path)
-from common import EVAL_HILL, extract, read_jsonl, reward, score_many, write_jsonl  # noqa: E402
+from common import EVAL_HILL, read_jsonl, reward, score_many, write_jsonl  # noqa: E402
 # training/mlx/prompts.py, loaded from its file: putting training/mlx on sys.path would make
 # a directory named "mlx" importable, and transformers would take it for Apple's MLX library.
 _spec = importlib.util.spec_from_file_location("mlx_prompts", HERE.parent / "mlx" / "prompts.py")
 _prompts = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_prompts)
 ARCHETYPES, messages = _prompts.ARCHETYPES, _prompts.messages
+PREFILL, source_of = _prompts.PREFILL, _prompts.source_of
+from train import prompt_text  # noqa: E402  (same prompts as training)
 
 
-def sample(model, adapter, n, max_tokens, seed):
+def sample(model, adapter, n, max_tokens, seed, style, temperature, top_p, top_k):
     from vllm import LLM, SamplingParams
     from vllm.lora.request import LoRARequest
 
@@ -39,12 +41,12 @@ def sample(model, adapter, n, max_tokens, seed):
     tok = llm.get_tokenizer()
     names = [a for a, _ in ARCHETYPES]
     per = math.ceil(n / len(names))
-    prompts = [tok.apply_chat_template(messages(a), tokenize=False, add_generation_prompt=True) for a in names]
+    prompts = [prompt_text(tok, style, a) for a in names]
     out = {}
     for tag, lora in (("base", None), ("final", LoRARequest("adapter", 1, adapter))):
-        sp = SamplingParams(n=per, temperature=1.0, max_tokens=max_tokens, seed=seed)
+        sp = SamplingParams(n=per, temperature=temperature, top_p=top_p, top_k=top_k, max_tokens=max_tokens, seed=seed)
         gens = llm.generate(prompts, sp, lora_request=lora)
-        rows = [{"arch": a, "text": o.text, "source": extract(o.text)} for a, g in zip(names, gens) for o in g.outputs]
+        rows = [{"arch": a, "text": o.text, "source": source_of(o.text)} for a, g in zip(names, gens) for o in g.outputs]
         out[tag] = rows[:n] if len(rows) == n else rows
     return out
 
@@ -112,7 +114,8 @@ def main():
     cfg = json.loads((run / "config.json").read_text()) if (run / "config.json").exists() else {}
     model = a.model or cfg.get("model", "Qwen/Qwen2.5-Coder-7B-Instruct")
     max_tokens = a.max_tokens or cfg.get("max_completion", 768)
-    s = sample(model, a.adapter or str(run / "final"), a.n, max_tokens, a.seed)
+    s = sample(model, a.adapter or str(run / "final"), a.n, max_tokens, a.seed, cfg.get("prompt_style", "mlx"),
+               cfg.get("temperature", 1.0), cfg.get("top_p", 1.0), cfg.get("top_k", -1) or -1)
     base, final = score(s["base"], a.workers), score(s["final"], a.workers)
     write_jsonl(run / "base.eval.jsonl", base)
     write_jsonl(run / "final.eval.jsonl", final)
