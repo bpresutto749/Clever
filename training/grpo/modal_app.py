@@ -80,9 +80,9 @@ def smoke(model: str = MODEL):
 
 
 @app.function(timeout=3600, **GPU)
-def probe(n: int = 64, styles: str = "mlx,mlx_dwarf,route1", sampling: str = "1.0:1.0,0.8:0.95"):
+def probe(n: int = 64, styles: str = "mlx,mlx_dwarf,route1", sampling: str = "1.0:1.0,0.8:0.95", model: str = MODEL):
     """Base model only: share of valid and winning samples per prompt and sampling setting."""
-    _run(["python", "probe.py", "--n", str(n), "--styles", styles, "--sampling", sampling])
+    _run(["python", "probe.py", "--model", model, "--n", str(n), "--styles", styles, "--sampling", sampling])
 
 
 @app.function(timeout=2 * 3600, **GPU)

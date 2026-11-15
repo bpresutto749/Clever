@@ -52,8 +52,10 @@ def user_text(style, arch):
 
 
 def prompt_text(tok, style, arch):
+    # Qwen3 thinks before answering unless told not to; the reply here starts inside a code block.
+    extra = {"enable_thinking": False} if "qwen3" in (tok.name_or_path or "").lower() else {}
     return tok.apply_chat_template([{"role": "user", "content": user_text(style, arch)}], tokenize=False,
-                                   add_generation_prompt=True) + PREFILL
+                                   add_generation_prompt=True, **extra) + PREFILL
 
 
 def main():
