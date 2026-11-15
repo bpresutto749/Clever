@@ -10,6 +10,7 @@ usage: evaluate.py --run runs/qwen7b-grpo [--adapter runs/qwen7b-grpo/final] [--
 writes RUN/base.eval.jsonl, RUN/final.eval.jsonl and RUN/REPORT.md
 """
 import argparse
+import importlib.util
 import json
 import math
 import os
@@ -19,10 +20,15 @@ from collections import defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent))
-sys.path.insert(0, str(HERE.parent / "mlx"))
+sys.path.insert(0, str(HERE))
+import reward as _reward  # noqa: E402,F401  (loads training/common.py without putting training/ on sys.path)
 from common import EVAL_HILL, extract, read_jsonl, reward, score_many, write_jsonl  # noqa: E402
-from prompts import ARCHETYPES, messages  # noqa: E402
+# training/mlx/prompts.py, loaded from its file: putting training/mlx on sys.path would make
+# a directory named "mlx" importable, and transformers would take it for Apple's MLX library.
+_spec = importlib.util.spec_from_file_location("mlx_prompts", HERE.parent / "mlx" / "prompts.py")
+_prompts = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_prompts)
+ARCHETYPES, messages = _prompts.ARCHETYPES, _prompts.messages
 
 
 def sample(model, adapter, n, max_tokens, seed):

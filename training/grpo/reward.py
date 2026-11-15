@@ -17,6 +17,7 @@ followed by dead code).
 
 usage (check a file of samples):  python3 reward.py samples.jsonl [--workers 8]
 """
+import importlib.util
 import multiprocessing
 import os
 import statistics
@@ -24,7 +25,13 @@ import sys
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# training/common.py is loaded from its file. training/ itself must not be on sys.path: it holds
+# a directory named "mlx", which would then be importable as `mlx`, and transformers would take
+# it for Apple's MLX library (ModuleNotFoundError: mlx.core, during training).
+if "common" not in sys.modules:
+    _spec = importlib.util.spec_from_file_location("common", Path(__file__).resolve().parent.parent / "common.py")
+    sys.modules["common"] = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(sys.modules["common"])
 from common import CORPUS, GATE_DIRS, TRAIN_HILL, core, extract  # noqa: E402
 
 ROUNDS = int(os.environ.get("GRPO_ROUNDS", "50"))
