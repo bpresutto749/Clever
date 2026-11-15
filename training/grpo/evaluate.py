@@ -92,6 +92,20 @@ def report(run, base, final):
         raw = [r["eval_score"] if r["eval_valid"] and not r["eval_copy"] else 0.0 for r in rows]
         L.append(f"| {name} | {len(rows)} | {sum(r['eval_valid'] for r in rows)} | {sum(r['eval_copy'] for r in rows)} | "
                  f"{statistics.mean(rw):.4f} | {max(rw):.4f} | {sum(x > 0 for x in rw) / len(rw):.2f} | {statistics.mean(raw):.4f} |")
+    from reward import dwarf_shape
+    from common import core
+    L += ["", "Where the reward comes from (structure of the warriors with reward > 0):", "",
+          "| model | Dwarf with other constants | contains the Dwarf loop | other |", "|---|---|---|---|"]
+    for name, rows in (("base", base), ("after GRPO", final)):
+        tot = sum(r["eval_reward"] for r in rows) or 1.0
+        by = {"dwarf": 0.0, "dwarf_loop": 0.0, None: 0.0}
+        cnt = {"dwarf": 0, "dwarf_loop": 0, None: 0}
+        for r in rows:
+            if r["eval_reward"] > 0:
+                k = dwarf_shape(core.assemble(r["source"])[0])
+                by[k] += r["eval_reward"]; cnt[k] += 1
+        L.append(f"| {name} | {cnt['dwarf']} warriors, {by['dwarf'] / tot:.0%} of the reward | "
+                 f"{cnt['dwarf_loop']}, {by['dwarf_loop'] / tot:.0%} | {cnt[None]}, {by[None] / tot:.0%} |")
     L += ["", "The reward is 0 for any warrior at or below Dwarf (hill score 0.1475); the raw hill score "
           "(points / maximum, copies and invalid samples at 0) also shows progress below that line."]
     L += ["", f"Difference in mean reward: {mf - mb:+.4f} (95% CI {mf - mb - 1.96 * se:+.4f} to {mf - mb + 1.96 * se:+.4f}, "

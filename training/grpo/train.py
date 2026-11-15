@@ -77,7 +77,10 @@ def main():
     ap.add_argument("--vllm-memory", type=float, default=0.3)
     ap.add_argument("--workers", type=int, default=os.cpu_count())
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--gate-example", action="store_true", help="Dwarf variants earn 0 in training (reward.py)")
     a = ap.parse_args()
+    if a.gate_example:
+        os.environ["GRPO_GATE_EXAMPLE"] = "1"      # before the scoring processes fork
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
 
