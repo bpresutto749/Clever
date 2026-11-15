@@ -108,7 +108,7 @@ The hidden hill is never used for training, and is read on fresh samples after t
   the 30 warriors `spar` shows; it did not carry over to the hidden hill.
 - **GRPO 7B with Dwarf variants at 0 in training:** 0.0034 → 0.0050 (95% CI -0.006 to +0.010):
   not significant.
-- **Qwen3-8B, single answer, 100 steps:** evaluation running. **Qwen3-8B calling `spar` itself:**
+- **Qwen3-8B, single answer, 100 steps:** 0.0228 → 0.0423 (95% CI -0.003 to +0.042): not significant; the base model starts higher than the others, and 96% of the trained model's reward comes from Dwarf shapes. **Qwen3-8B calling `spar` itself:**
   running; the share of samples using the tool rose from 59% to 95% by step 10.
 
 Read together: wherever the cheap pattern is taken away (no example, Dwarf variants at 0) or
