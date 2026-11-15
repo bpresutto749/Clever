@@ -89,6 +89,14 @@ def train_agent(run: str = "qwen7b-agent", model: str = MODEL, max_steps: int = 
           "--workers", "16", *extra.split()])
 
 
+@app.function(timeout=2 * 3600, **GPU)
+def evaluate_agent(run: str = "qwen7b-agent", n: int = 64, adapter: str = ""):
+    """Two-turn evaluation on the hidden hill (evaluate_agent.py): draft, spar report, final."""
+    _run(["python", "evaluate_agent.py", "--run", f"/out/{run}", "--n", str(n), "--workers", "16",
+          *(["--adapter", f"/out/{run}/{adapter}"] if adapter else [])])
+    print(Path(f"/out/{run}/AGENT_REPORT.md").read_text())
+
+
 @app.function(timeout=3600, **GPU)
 def probe(n: int = 64, styles: str = "mlx,mlx_dwarf,route1", sampling: str = "1.0:1.0,0.8:0.95", model: str = MODEL):
     """Base model only: share of valid and winning samples per prompt and sampling setting."""
