@@ -39,9 +39,9 @@ install trl==1.17.1 vllm==0.31.0 peft datasets`, then `make -C pmars pmars`).
   route 1 converged on it. In wins, the imp is worth 0.022 and Dwarf 0.197. Base-model
   samples (64, from another prompt) spread from 0 to 0.26, and 31% win at least one round,
   so the groups have the variance GRPO needs. `--tie-weight` (0 to 1) puts ties back in.
-- **Copies earn 0,** with the verifier's gate plus the short-warrior rule of
-  `training/common.py`: without that rule, a published 3-to-5-instruction warrior followed by
-  dead code passes the gate, and RL would find it.
+- **Copies earn 0,** with the verifier's own gate (`arena/core.py`). That gate also catches a
+  published 3-to-5-instruction warrior followed by dead code, which it used to let through
+  and which RL would have found.
 - **Same prompts as the MLX run** (`training/mlx/prompts.py`): no warrior code in the prompt,
   so there is no example to hand back, and one archetype per prompt in turn, so every step
   asks for stones, papers, scanners, composites and free designs.

@@ -75,6 +75,12 @@ The 10-warrior runs are kept as **version 2** (`runs/v2-small-pool/`). The headl
 |---|---|
 | **Zero point: one-line imp → Dwarf.** The zero point moved from a one-line imp (`mov.i #0, 1`, hill 0.1650) to Dwarf (A. K. Dewdney's classic bomber, `doc/example_dwarf.red`, hill 0.1475). This was decided after all 17 runs had been scored, including the five final runs. | **Why:** the imp never kills and scores only through ties. Dwarf is the canonical first warrior and the example the agent is handed, so reward 0 reads "no better than the textbook example". **Effect:** an affine change of the same raw score, so the order of the runs is unchanged. Every reward was recomputed from the stored raw hill scores without rerunning any agent (`exploits/rescore_anchor.py` → `results/rescored_dwarf_anchor.md`). Agents' rewards rise slightly (v3 mean 0.653 → 0.671); the raw-score gap is unchanged. |
 
+## Changed after all runs were scored: the copy gate on short warriors (15 November 2026)
+
+| change | effect on the comparison |
+|---|---|
+| **A published warrior of 3 to 5 instructions inside a longer submission is a copy.** Containment used to need 6+ instructions on both sides, so Gymnosperm Trickery (5 instructions) followed by 3 dead `dat` lines passed the gate and earned 0.577 at 500 rounds. Found while reviewing the small-model runs: their final samples were the prompt's example stone followed by dead code. Imp launchers (a `MOV.I $0, x` line) are not looked for, because two published warriors contain another author's (EXPLOITS.md, residual risk 5). The same change reads pMARS's messages with `errors="replace"` (a non-ASCII line could crash the reading; such a warrior was invalid anyway). | None on the reported runs: no recorded agent submission is flagged (`tests/test_env.py`), so no reward changes. On the 564 published warriors, the rule flags three that contain an earlier warrior by the same author verbatim. |
+
 ## Runs excluded
 
 - **D and E.** Killed at about 14 minutes by an API quota error. Kept in `runs/aborted/`

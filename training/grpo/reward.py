@@ -11,8 +11,9 @@ iteration converged on it (TRAINING.md, route 1). Counted in wins, the imp is wo
 the documentation's Dwarf 0.197. GRPO_TIE_WEIGHT gives ties a weight between 0 (default) and
 1 (the environment's points) if a run wants it.
 
-A sample earns 0 when it does not assemble or when the gate calls it a copy: the verifier's
-gate (published, hill and sparring warriors) plus the short-warrior rule of common.py.
+A sample earns 0 when it does not assemble or when the verifier's gate calls it a copy of a
+published, hill or sparring warrior (arena/core.py, including a short published warrior
+followed by dead code).
 
 usage (check a file of samples):  python3 reward.py samples.jsonl [--workers 8]
 """
@@ -24,7 +25,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import CORPUS, GATE_DIRS, TRAIN_HILL, core, extract, short_copy  # noqa: E402
+from common import CORPUS, GATE_DIRS, TRAIN_HILL, core, extract  # noqa: E402
 
 ROUNDS = int(os.environ.get("GRPO_ROUNDS", "50"))
 TIE_WEIGHT = float(os.environ.get("GRPO_TIE_WEIGHT", "0"))
@@ -45,10 +46,6 @@ def score(src, rounds=ROUNDS, tie_weight=TIE_WEIGHT):
         if g["copy"]:
             out["copy"] = g["warrior"]
             return out
-    s = short_copy(ins)
-    if s:
-        out["copy"] = s
-        return out
     res = core.play_hill(src, _HILL, rounds, workers=1)
     w, t, l = (sum(getattr(r, k) for r in res) for k in ("wins", "ties", "losses"))
     n = max(1, w + t + l)

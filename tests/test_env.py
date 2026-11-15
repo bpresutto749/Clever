@@ -129,6 +129,42 @@ def test_padding_and_retuning_do_not_escape_the_gate():
         assert core.nearest_published(ins, gate)["copy"], f.name
 
 
+def test_short_published_warrior_with_dead_code_is_a_copy():
+    gate = [ROOT / "data" / "corpus", ROOT / "data" / "hill", ROOT / "data" / "sparring"]
+    src = (ROOT / "data" / "corpus" / "drq" / "gymnospermtrickery.red").read_text()
+    for k in (3, 10, 40):       # 3 dead lines were enough to pass before; more dilutes the ratio further
+        ins = core.assemble(src.replace("   end", "   dat #1, #1\n" * k + "   end"))[0]
+        pub = core.nearest_published(ins, gate)
+        assert pub["copy"] and pub["warrior"] == "gymnospermtrickery", (k, pub)
+    # imp lines and imp launchers are parts of countless original warriors: not looked for
+    stone_imp = ";redcode-94\nstart   spl imp\n        add.ab #2365, bomb\n        mov.i bomb, @bomb\n        jmp -2\nbomb    dat #0, #0\nimp     mov.i #0, 1\n        end start\n"
+    assert not core.nearest_published(core.assemble(stone_imp)[0], gate)["copy"]
+
+
+def test_short_warrior_rule_on_the_published_corpus():
+    # False-positive check for the short-warrior rule on 564 human warriors, who reuse
+    # techniques all the time. Only three hits remain, each an author reusing his own warrior
+    # verbatim (Rodrigo Setti's Advanced Dwarf, William Hamaker's Flea). The two cross-author
+    # hits were imp launchers (impgun in breadman, trident in nerxa19), which the rule skips.
+    listings = {}
+    for d in ("corpus", "hill", "sparring"):
+        for f in sorted((ROOT / "data" / d).rglob("*.red")):
+            ins = core._strip(core.assemble(f.read_text(errors="replace"))[0])
+            if ins:
+                listings.setdefault(tuple(ins), f.stem)
+    short = [list(k) for k in listings
+             if core.SHORT_MIN <= len(k) < 6 and not any(core._IMP_LINE.match(x) for x in k)]
+    hits = [(listings[a], listings[tuple(b)]) for a in listings for b in short
+            if len(a) > len(b) and core._block_containment(list(a), b, 1) >= core.COPY_EXACT]
+    assert sorted(hits) == [("dwarfmice", "advanceddwarf"), ("hopper", "flea"), ("polydwarf", "advanceddwarf")], hits
+
+
+def test_non_ascii_code_is_rejected_not_a_crash():
+    # pMARS rejects the line and echoes it cut at a byte, inside a UTF-8 character
+    ins, msgs = core.assemble(";redcode-94\nd\u00e9but   add.ab #4, 3\n        jmp d\u00e9but\n")
+    assert ins == [] and "Error" in msgs
+
+
 def test_clock_starts_on_first_call_and_is_in_every_reply(tmp_path, monkeypatch):
     monkeypatch.setenv("RESULTS_DIR", str(tmp_path))
     monkeypatch.setenv("ARENA_DATA", str(ROOT / "data"))

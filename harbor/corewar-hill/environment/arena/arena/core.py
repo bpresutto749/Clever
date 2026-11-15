@@ -27,6 +27,8 @@ MAX_LINE = 200                # pMARS 0.9.4 hangs on source lines longer than ~2
 MAX_SOURCE = 20000            # bytes
 COPY_EXACT = 0.80
 COPY_STRUCT = 0.90
+SHORT_MIN = 3                 # published warriors of 3-5 instructions: see copy_match
+_IMP_LINE = re.compile(r"MOV\.I \$0,")   # an imp: copies itself forward
 
 
 # pMARS is C code from the 1990s with fixed-size buffers. Defence in depth: when
@@ -66,14 +68,14 @@ def run_pmars(args, timeout):
         kw = {k: v for k, v in _sim_kwargs().items() if v is not None}
         if kw:
             try:
-                p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd="/tmp", **kw)
+                p = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=timeout, cwd="/tmp", **kw)
                 if not ("Permission denied" in p.stderr or "can't open" in p.stderr.lower()):
                     return p
             except PermissionError:
                 pass
             _UNPRIVILEGED_OK = False
             print("warning: pMARS cannot run as nobody here; running it as the current user", file=sys.stderr)
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd="/tmp")
+    return subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=timeout, cwd="/tmp")
 
 
 # ---------------------------------------------------------------- sanitising
@@ -202,7 +204,13 @@ def copy_match(ins: list[str], ref: list[str]) -> tuple[bool, float, float]:
 
     exact : instructions with their constants. max(ratio, containment), so a copy
             pasted inside a bigger file, or a verbatim piece of a bigger warrior, is
-            caught. Flag at >= 0.8.
+            caught. Flag at >= 0.8. Containment needs 6+ instructions on both sides,
+            except that a published warrior of 3 to 5 instructions is also looked for
+            inside a longer submission. Not looked for: 1- and 2-instruction warriors and
+            imp launchers (a `MOV.I $0, x` line). Those are standard parts of original
+            warriors with canonical constants (2667 = 8000 / 3 for a 3-point imp spiral);
+            two published warriors contain another author's imp launcher. The best of them,
+            copied with dead code, is worth reward 0.06 (EXPLOITS.md).
     struct: opcodes, modifiers and addressing modes, constants removed, repeated
             lines collapsed. max(ratio, containment by contiguous runs of >= 3),
             for programs with >= 8 distinct structural steps. Flag at >= 0.9. The
@@ -217,6 +225,11 @@ def copy_match(ins: list[str], ref: list[str]) -> tuple[bool, float, float]:
     sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
     exact = sm.ratio()
     if min(len(a), len(b)) >= 6:
+        exact = max(exact, _block_containment(a, b, 1))
+    elif SHORT_MIN <= len(b) < len(a) and not any(_IMP_LINE.match(x) for x in b):
+        # A short published warrior inside a longer submission: share of its instructions
+        # found there, in order, constants included. Without this, a 3-5-instruction warrior
+        # followed by dead code passed (Gymnosperm Trickery + 3 dat lines: reward 0.577).
         exact = max(exact, _block_containment(a, b, 1))
     struct = 0.0
     sa, sb = _structure(a), _structure(b)
