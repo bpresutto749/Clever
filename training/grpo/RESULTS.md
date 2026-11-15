@@ -43,10 +43,16 @@ expert iteration.
 |---|---|---|---|
 | main | none | 31% → 75% (step 150) | above |
 | seed 1 | another seed | 34% → 67% (step 100) | evaluation pending |
-| no Dwarf | the prompt has no warrior code | 2-13% → 33% | evaluation pending |
+| no Dwarf | the prompt has no warrior code | 2-13% → 33% | 0.0000 → **0.0040** (95% CI of the gain +0.001 to +0.007); reward > 0: 0% → 11%; raw hill score 0.001 → 0.033; valid 26 → 42 of 65 |
 
 The replicate follows the main run step for step. Without the Dwarf, learning starts from far
 fewer winning samples and stays slow.
+
+**The control separates the two effects.** All 7 control samples with reward > 0 are other
+designs than the Dwarf (best: a stone/imp composite, 0.055). The main run's reward outside the
+Dwarf shapes is 0.0045 at step 150, about the control's 0.0040. With or without the example,
+GRPO teaches the 7B model a small, real gain on designs of its own; the example in the prompt
+adds retuned Dwarfs on top of it, which make up 90% of the main run's reward.
 
 ## Prompt choice (`probe.py`, base model, 60 samples each)
 
