@@ -114,10 +114,11 @@ def make_two_turn_rollout(tok, args):
         return res
 
     def rollout(prompts, trainer):
+        # TRL hands over the prompts already repeated num_generations times (one entry per group
+        # member) and sizes the batch by len(prompts): one completion per entry.
         llm = trainer.vllm_generation.llm
-        n = trainer.num_generations
         prompt_ids = [tok(p, add_special_tokens=False)["input_ids"] for p in prompts]
-        first = gen(llm, prompt_ids, n)                                   # len(prompts) * n drafts
+        first = gen(llm, prompt_ids, 1)
         drafts = [source_of(t) for _, _, t in first]
         reports = list(_POOL.map(spar_report, drafts, chunksize=1))
         p_ids, c_ids, lps, masks, finals, firsts = [], [], [], [], [], []
@@ -129,7 +130,7 @@ def make_two_turn_rollout(tok, args):
                 ids1, lp1 = ids1[:-1], lp1[:-1]
             first[i] = (ids1, lp1, t1)
         for i, ((ids1, lp1, t1), rep) in enumerate(zip(first, reports)):
-            base = prompt_ids[i // n]
+            base = prompt_ids[i]
             closed = ids1 if t1.rstrip().endswith("```") else ids1 + tok("\n```", add_special_tokens=False)["input_ids"]
             user = ("<|im_start|>user\n" + FEEDBACK.format(report=rep) + "<|im_end|>\n<|im_start|>assistant\n" + PREFILL)
             env = end_turn + tok(user, add_special_tokens=False)["input_ids"]
@@ -137,7 +138,7 @@ def make_two_turn_rollout(tok, args):
             second_inputs.append(base + closed + env)
         second = gen(llm, second_inputs, 1)
         for i, ((ids1, lp1, t1), (pad, env), (ids2, lp2, t2)) in enumerate(zip(first, envs, second)):
-            p_ids.append(prompt_ids[i // n])
+            p_ids.append(prompt_ids[i])
             c_ids.append(ids1 + pad + env + ids2)
             lps.append(lp1 + [0.0] * (len(pad) + len(env)) + lp2)
             masks.append([1] * len(ids1) + [0] * (len(pad) + len(env)) + [1] * len(ids2))
