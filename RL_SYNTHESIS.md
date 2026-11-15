@@ -25,6 +25,7 @@ The hidden hill is never used for training, and is read on fresh samples after t
 | **its own small bombers** (no example in the prompt) | expert iteration, 14B (2 seeds) | 0.002–0.004 → 0.037–0.051 | 0.22, **0.36** |
 | same | expert iteration, 32B, 7 rounds (2 seeds) | 0.011–0.015 → **0.059–0.082** | 0.30–0.33 |
 | its own designs, small | GRPO, 7B, no warrior in the prompt | 0.000 → 0.004 | 0.06 |
+| working warriors that still lose to Dwarf | GRPO, 7B, Dwarf variants earn 0 in training | 0.003 → 0.005 (not significant) | 0.18 |
 | **the example warrior it was shown**, retuned | GRPO, 3B / 7B, Dwarf in the prompt | 0.003–0.012 → 0.023–0.084 | 0.19 (7B) |
 | the example retuned (57%) and its own designs (43%) | GRPO, 14B, Dwarf in the prompt | 0.006 → 0.022 | 0.19 |
 | same | expert iteration, 7B, five examples in the prompt | 0.000–0.006 → 0.138–0.151 | 0.19–0.26 |
@@ -120,12 +121,13 @@ The hidden hill is never used for training, and is read on fresh samples after t
 | GRPO Qwen3-8B, 100 steps | Modal | step ~50 | 82% → 89% |
 | agentic GRPO, 7B, two turns (draft, spar report, final), 80 steps | Modal | step ~40 | 30% → 59% |
 | agentic GRPO, Qwen3-8B calling `spar` itself, 30 steps | Modal | running | |
-| GRPO 7B, Dwarf variants earn 0 in training (`--gate-example`), 150 steps | Modal | step ~106 | 29% → 70%: the model finds winning designs other than the Dwarf |
 | expert iteration 7B, seed B | cluster | evaluation running | |
 
 These rows will be replaced by hidden-hill results as the runs finish.
 
 ## Update log
+
+- 15 Nov 07:25 EET: GRPO 7B with Dwarf variants at 0 in training: no significant gain on the hidden hill (+0.0016, CI -0.006 to +0.010).
 
 - 15 Nov 07:05 EET: run count 18 → 19 (GRPO 14B also gains outside the noise).
 - 15 Nov 07:00 EET: GRPO 14B result; agentic GRPO runs (two-turn 7B, Qwen3-8B with tool calls) running.

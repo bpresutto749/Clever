@@ -57,6 +57,22 @@ Dwarf shapes is 0.0045 at step 150, about the control's 0.0040. With or without 
 GRPO teaches the 7B model a small, real gain on designs of its own; the example in the prompt
 adds retuned Dwarfs on top of it, which make up 90% of the main run's reward.
 
+## Retuning the Dwarf earns nothing (`--gate-example`, 7B, 150 steps)
+
+Same as the main run, except that a warrior with the Dwarf's structure, or containing its loop,
+earns 0 in training.
+
+| | base | after 150 steps |
+|---|---|---|
+| mean reward on the hidden hill | 0.0034 | 0.0050 (gain +0.0016, 95% CI **-0.006 to +0.010**: not significant) |
+| samples with reward > 0 | 3% | 6% |
+| valid samples (of 65) | 40 | 59 |
+| mean raw hill score | 0.014 | 0.045 |
+
+In training, 64% of its samples won a round at the end (29% at the start). It learned to write
+working warriors that beat weak opponents, but not warriors that beat Dwarf on the hidden hill.
+**Without the example to retune, the 7B model shows no measurable gain on the hidden hill.**
+
 ## Other models (same prompt, reward and sampling)
 
 | model | steps | hidden hill: mean reward, base → trained (95% CI of the gain) | reward > 0 | valid (of 65) | share of the reward from Dwarf shapes, trained |
