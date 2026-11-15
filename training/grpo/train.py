@@ -14,6 +14,7 @@ source), so the run can be read warrior by warrior.
 usage: train.py --model Qwen/Qwen2.5-Coder-7B-Instruct --out runs/qwen7b-grpo --max-steps 150
 """
 import argparse
+import importlib.util
 import json
 import os
 import sys
@@ -22,11 +23,14 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent))
-sys.path.insert(0, str(HERE.parent / "mlx"))
 from reward import Scorer, summary  # noqa: E402  (before torch: see Scorer)
 from common import extract  # noqa: E402
-from prompts import ARCHETYPES, messages  # noqa: E402
+# training/mlx/prompts.py, loaded from its file: putting training/mlx on sys.path would make
+# a directory named "mlx" importable, and transformers would take it for Apple's MLX library.
+_spec = importlib.util.spec_from_file_location("mlx_prompts", HERE.parent / "mlx" / "prompts.py")
+_prompts = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_prompts)
+ARCHETYPES, messages = _prompts.ARCHETYPES, _prompts.messages
 
 
 def main():
