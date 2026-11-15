@@ -86,10 +86,14 @@ def report(run, base, final):
         L += ["Configuration: `" + json.dumps(json.loads(cfg.read_text())) + "`", ""]
     L += ["## Training (training pool only; reward = share of rounds won, 0 for copies)", ""] + training_curve(run)
     L += ["", "## Held-out evaluation hill (never used for training or selection), fresh samples", "",
-          "| model | samples | valid | copies | mean reward | best-of-n reward | share with reward > 0 |", "|---|---|---|---|---|---|---|"]
+          "| model | samples | valid | copies | mean reward | best-of-n reward | share with reward > 0 | mean raw hill score |",
+          "|---|---|---|---|---|---|---|---|"]
     for name, rows, rw in (("base", base, b), ("after GRPO", final, f)):
+        raw = [r["eval_score"] if r["eval_valid"] and not r["eval_copy"] else 0.0 for r in rows]
         L.append(f"| {name} | {len(rows)} | {sum(r['eval_valid'] for r in rows)} | {sum(r['eval_copy'] for r in rows)} | "
-                 f"{statistics.mean(rw):.4f} | {max(rw):.4f} | {sum(x > 0 for x in rw) / len(rw):.2f} |")
+                 f"{statistics.mean(rw):.4f} | {max(rw):.4f} | {sum(x > 0 for x in rw) / len(rw):.2f} | {statistics.mean(raw):.4f} |")
+    L += ["", "The reward is 0 for any warrior at or below Dwarf (hill score 0.1475); the raw hill score "
+          "(points / maximum, copies and invalid samples at 0) also shows progress below that line."]
     L += ["", f"Difference in mean reward: {mf - mb:+.4f} (95% CI {mf - mb - 1.96 * se:+.4f} to {mf - mb + 1.96 * se:+.4f}, "
           "Welch normal approximation)", "", "Mean reward by archetype asked:", "", "| archetype | base | after GRPO |", "|---|---|---|"]
     for a, _ in ARCHETYPES:
