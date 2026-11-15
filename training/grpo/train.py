@@ -146,9 +146,12 @@ def main():
         report_to="none",
         seed=a.seed,
     )
-    # Gemma 4 is multimodal: LoRA goes on its language model only (model.language_model.*).
-    gemma4 = "gemma-4" in a.model.lower()
-    targets = (r".*language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)" if gemma4 else "all-linear")
+    # Multimodal models (Gemma 4, Qwen3.5 and later: *ForConditionalGeneration): LoRA goes on the
+    # language model only (model.language_model.*).
+    from transformers import AutoConfig
+    arch = (AutoConfig.from_pretrained(a.model).architectures or [""])[0]
+    multimodal = "ConditionalGeneration" in arch
+    targets = (r".*language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)" if multimodal else "all-linear")
     peft = LoraConfig(r=a.lora_r, lora_alpha=2 * a.lora_r, lora_dropout=0.05, target_modules=targets, task_type="CAUSAL_LM")
     (out / "config.json").write_text(json.dumps({
         **vars(a), "samples_per_step": batch,
@@ -158,14 +161,14 @@ def main():
 
     trainer = GRPOTrainer(model=a.model, reward_funcs=corewar_reward, args=cfg, train_dataset=ds, peft_config=peft)
     vg = getattr(trainer, "vllm_generation", None)
-    if gemma4 and vg is not None:
+    if multimodal and vg is not None:
         # The vision and audio embedders are not trained, and some of their parameter names differ
         # between transformers and vLLM (embed_vision.pos_embedding): push only the language model.
         _iter = vg._iter_named_params
 
         def _language_model_only():
             for name, param in _iter():
-                if "vision" not in name and "audio" not in name:
+                if not any(k in name for k in ("vision", "visual", "audio")):
                     yield name, param
 
         vg._iter_named_params = _language_model_only
