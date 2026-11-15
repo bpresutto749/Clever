@@ -22,13 +22,14 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import reward as _reward  # noqa: E402,F401  (loads training/common.py without putting training/ on sys.path)
-from common import EVAL_HILL, extract, read_jsonl, reward, score_many, write_jsonl  # noqa: E402
+from common import EVAL_HILL, read_jsonl, reward, score_many, write_jsonl  # noqa: E402
 # training/mlx/prompts.py, loaded from its file: putting training/mlx on sys.path would make
 # a directory named "mlx" importable, and transformers would take it for Apple's MLX library.
 _spec = importlib.util.spec_from_file_location("mlx_prompts", HERE.parent / "mlx" / "prompts.py")
 _prompts = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_prompts)
 ARCHETYPES, messages = _prompts.ARCHETYPES, _prompts.messages
+PREFILL, source_of = _prompts.PREFILL, _prompts.source_of
 
 
 def sample(model, adapter, n, max_tokens, seed):
@@ -39,12 +40,12 @@ def sample(model, adapter, n, max_tokens, seed):
     tok = llm.get_tokenizer()
     names = [a for a, _ in ARCHETYPES]
     per = math.ceil(n / len(names))
-    prompts = [tok.apply_chat_template(messages(a), tokenize=False, add_generation_prompt=True) for a in names]
+    prompts = [tok.apply_chat_template(messages(a), tokenize=False, add_generation_prompt=True) + PREFILL for a in names]
     out = {}
     for tag, lora in (("base", None), ("final", LoRARequest("adapter", 1, adapter))):
         sp = SamplingParams(n=per, temperature=1.0, max_tokens=max_tokens, seed=seed)
         gens = llm.generate(prompts, sp, lora_request=lora)
-        rows = [{"arch": a, "text": o.text, "source": extract(o.text)} for a, g in zip(names, gens) for o in g.outputs]
+        rows = [{"arch": a, "text": o.text, "source": source_of(o.text)} for a, g in zip(names, gens) for o in g.outputs]
         out[tag] = rows[:n] if len(rows) == n else rows
     return out
 

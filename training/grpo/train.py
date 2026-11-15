@@ -24,13 +24,13 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from reward import Scorer, summary  # noqa: E402  (before torch: see Scorer)
-from common import extract  # noqa: E402
 # training/mlx/prompts.py, loaded from its file: putting training/mlx on sys.path would make
 # a directory named "mlx" importable, and transformers would take it for Apple's MLX library.
 _spec = importlib.util.spec_from_file_location("mlx_prompts", HERE.parent / "mlx" / "prompts.py")
 _prompts = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_prompts)
 ARCHETYPES, messages = _prompts.ARCHETYPES, _prompts.messages
+PREFILL, source_of = _prompts.PREFILL, _prompts.source_of
 
 
 def main():
@@ -63,20 +63,26 @@ def main():
     import trl
     from datasets import Dataset
     from peft import LoraConfig
+    from transformers import AutoTokenizer
     from trl import GRPOConfig, GRPOTrainer
 
     batch = a.prompts_per_step * a.num_generations             # samples per optimiser step
     assert batch % a.micro_batch == 0
     n_rows = max(a.max_steps * a.prompts_per_step, 5 * 40)
     names = [n for n, _ in ARCHETYPES]
-    ds = Dataset.from_list([{"prompt": messages(names[i % len(names)]), "arch": names[i % len(names)]} for i in range(n_rows)])
+    # Plain-text prompts that end inside the reply's code block, as in the MLX run: the chat
+    # template, then PREFILL ("```redcode\n"). The warrior is what the model writes before it
+    # closes the block (source_of). TRL's conversational format cannot prefill a reply.
+    tok = AutoTokenizer.from_pretrained(a.model)
+    text = {n: tok.apply_chat_template(messages(n), tokenize=False, add_generation_prompt=True) + PREFILL for n in names}
+    ds = Dataset.from_list([{"prompt": text[names[i % len(names)]], "arch": names[i % len(names)]} for i in range(n_rows)])
 
     log = open(out / "samples.jsonl", "a")
     calls = {"n": 0, "t": time.time()}
 
     def corewar_reward(completions, arch=None, **kw):
         texts = [c[-1]["content"] if isinstance(c, list) else c for c in completions]
-        srcs = [extract(t) for t in texts]
+        srcs = [source_of(t) for t in texts]
         res = scorer(srcs)
         calls["n"] += 1
         for s, r, ar in zip(srcs, res, arch or [None] * len(srcs)):
