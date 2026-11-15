@@ -97,6 +97,25 @@ The hidden hill is never used for training, and is read on fresh samples after t
      `errors="replace"` fix for pMARS output) is on branch `gate-short-warriors`, **not on main
      yet**.
 
+### Late results (07:55 EET)
+
+- **GRPO Gemma 4 12B, 100 steps:** 0.0000 → 0.0017 on the hidden hill (95% CI -0.001 to
+  +0.005): not significant. Valid samples 44 → 56, raw hill score 0.029 → 0.075.
+- **Agentic GRPO, 7B, two turns (draft, `spar` report, final), 80 steps:** final warrior 0.0007 →
+  0.0051 (95% CI -0.002 to +0.011): not significant. The second turn does not improve on the
+  draft, before or after training (final minus draft: -0.0028 and -0.0004). In training, the
+  share of final warriors winning a round rose from about 30% to 73% on the pool that contains
+  the 30 warriors `spar` shows; it did not carry over to the hidden hill.
+- **GRPO 7B with Dwarf variants at 0 in training:** 0.0034 → 0.0050 (95% CI -0.006 to +0.010):
+  not significant.
+- **Qwen3-8B, single answer, 100 steps:** evaluation running. **Qwen3-8B calling `spar` itself:**
+  running; the share of samples using the tool rose from 59% to 95% by step 10.
+
+Read together: wherever the cheap pattern is taken away (no example, Dwarf variants at 0) or
+feedback is added (two turns), the hidden-hill gain is small or not significant. The models
+learn to write valid, working warriors (more valid samples, higher raw hill scores), not
+warriors that beat Dwarf.
+
 ## Read with care
 
 - **Not one experiment.** The two efforts use different prompts, training rewards and evaluation
@@ -129,6 +148,8 @@ The hidden hill is never used for training, and is read on fresh samples after t
 These rows will be replaced by hidden-hill results as the runs finish.
 
 ## Update log
+
+- 15 Nov 07:55 EET: Gemma 4, two-turn agentic GRPO and gated 7B results (none significant).
 
 - 15 Nov 07:28 EET: counts made consistent with the gate-example run (19 of 20 runs gain).
 - 15 Nov 07:25 EET: GRPO 7B with Dwarf variants at 0 in training: no significant gain on the hidden hill (+0.0016, CI -0.006 to +0.010).

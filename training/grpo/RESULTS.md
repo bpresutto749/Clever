@@ -79,10 +79,34 @@ working warriors that beat weak opponents, but not warriors that beat Dwarf on t
 |---|---|---|---|---|---|
 | Qwen2.5-Coder-3B-Instruct | 150 | 0.0118 → **0.0837** (+0.051 to +0.092) | 9% → 69% | 32 → 63 | **100%** (81% the Dwarf with other constants, 19% its loop) |
 | Qwen2.5-Coder-14B-Instruct (H200) | 100 | 0.0062 → **0.0218** (+0.001 to +0.030) | 11% → 23% | 44 → 61 | **57%** (all of it the Dwarf with other constants); 43% from its own designs |
+| Gemma 4 12B (gemma-4-12B-it, H200) | 100 | 0.0000 → 0.0017 (-0.001 to +0.005: not significant) | 0% → 5% | 44 → 56 | 84% (one sample); raw hill score 0.029 → 0.075 |
 
 The smaller the model, the more completely it collapses onto the example: 100% of the reward
 from Dwarf shapes at 3B, 91% at 7B, 57% at 14B. The 14B model gains less in 100 steps, but
 nearly half of what it gains comes from designs of its own.
+
+## Agentic: two turns (`agent.py`, 7B, 80 steps)
+
+The model writes a draft, the environment runs `spar` on it (30 sparring warriors, 20 rounds)
+and sends the report, and the model writes its final warrior, which is rewarded. Evaluation
+(`evaluate_agent.py`): the same two turns, on the hidden hill, 64 samples per model.
+
+| model | mean reward, draft | mean reward, final | final > 0 | best final |
+|---|---|---|---|---|
+| base | 0.0035 | 0.0007 | 2% | 0.044 |
+| after two-turn GRPO | 0.0056 | 0.0051 | 6% | 0.183 |
+
+- Gain of the trained model on the final warrior: +0.0045 (95% CI -0.002 to +0.011): not
+  significant.
+- The second turn does not help: final minus draft is -0.0028 for the base model and -0.0004
+  for the trained one (both intervals include 0).
+- In training, the share of final warriors that win a round went from about 30% to 73%. The
+  training pool contains the 30 warriors the `spar` report shows; the gain did not carry over
+  to the hidden hill. That looks like the visible-set overfitting of FAILURES.md, but 64
+  evaluation samples are too few to say more.
+
+Qwen3-8B calling `spar` itself (tools mode, 30 steps) is still running. The share of its samples
+that call the tool went from 59% (first step) to 95% (step 10).
 
 ## Prompt choice (`probe.py`, base model, 60 samples each)
 
