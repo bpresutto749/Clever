@@ -9,3 +9,4 @@ training/mlx/runs/*/adapter_*/
 training/mlx/runs/*/smoke/
 jobs/
 training/grpo/runs/
+training/cluster/runs/
