@@ -108,6 +108,7 @@ def main():
     ap.add_argument("--n", type=int, default=64)
     ap.add_argument("--max-tokens", type=int)
     ap.add_argument("--seed", type=int, default=1000)
+    ap.add_argument("--tag", default="", help="prefix for the output files, e.g. step50 for a checkpoint")
     ap.add_argument("--workers", type=int, default=os.cpu_count())
     a = ap.parse_args()
     run = Path(a.run)
@@ -117,10 +118,13 @@ def main():
     s = sample(model, a.adapter or str(run / "final"), a.n, max_tokens, a.seed, cfg.get("prompt_style", "mlx"),
                cfg.get("temperature", 1.0), cfg.get("top_p", 1.0), cfg.get("top_k", -1) or -1)
     base, final = score(s["base"], a.workers), score(s["final"], a.workers)
-    write_jsonl(run / "base.eval.jsonl", base)
-    write_jsonl(run / "final.eval.jsonl", final)
+    pre = f"{a.tag}." if a.tag else ""
+    write_jsonl(run / f"{pre}base.eval.jsonl", base)
+    write_jsonl(run / f"{pre}final.eval.jsonl", final)
     text = report(run, base, final)
-    (run / "REPORT.md").write_text(text)
+    if a.tag:
+        text = text.replace("# GRPO report:", f"# GRPO report ({a.tag}, adapter {a.adapter}):", 1)
+    (run / f"{pre}REPORT.md").write_text(text)
     print(text)
 
 

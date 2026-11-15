@@ -86,7 +86,10 @@ def probe(n: int = 64, styles: str = "mlx,mlx_dwarf,route1", sampling: str = "1.
 
 
 @app.function(timeout=2 * 3600, **GPU)
-def evaluate(run: str = "qwen7b-grpo", n: int = 64, adapter: str = ""):
+def evaluate(run: str = "qwen7b-grpo", n: int = 64, adapter: str = "", tag: str = ""):
+    """adapter: a checkpoint directory of the run (e.g. checkpoint-50) instead of final; tag
+    names the output files (e.g. step50.REPORT.md), so the evaluations of a run do not overwrite
+    each other."""
     _run(["python", "evaluate.py", "--run", f"/out/{run}", "--n", str(n), "--workers", "16",
-          *(["--adapter", f"/out/{run}/{adapter}"] if adapter else [])])
-    print(Path(f"/out/{run}/REPORT.md").read_text())
+          *(["--adapter", f"/out/{run}/{adapter}"] if adapter else []), *(["--tag", tag] if tag else [])])
+    print(Path(f"/out/{run}/{tag + '.' if tag else ''}REPORT.md").read_text())
