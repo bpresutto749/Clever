@@ -37,8 +37,8 @@ The hidden hill is never used for training, and is read on fresh samples after t
 `video/explainer.py`, which shows only the first 7B run: 0.000 → 0.032):
 
 > **Small AIs learn from the game, then hit a wall.**
-> 19 training runs, two methods (expert iteration, reinforcement learning), models from 3B to 32B.
-> Every run improves, outside the noise. Each one learns the cheapest trick within its reach:
+> 20 training runs, two methods (expert iteration, reinforcement learning), models from 3B to 32B.
+> 19 of 20 improve, outside the noise. Each one learns the cheapest trick within its reach:
 > - a one-line trick (0.03);
 > - its own small programs (up to 0.08);
 > - retuning the example it was shown (up to 0.21).
@@ -48,12 +48,15 @@ The hidden hill is never used for training, and is read on fresh samples after t
 ## What both efforts found, independently
 
 1. **The reward can be climbed, from zero, and the gain replicates.**
-   - All 19 runs evaluated on the hidden hill gain, with a 95% interval above zero.
+   - 19 of the 20 runs evaluated on the hidden hill gain, with a 95% interval above zero.
    - A second seed confirms the gain at 7B (GRPO) and at 14B and 32B (expert iteration).
    - The size of the gain varies between seeds: 32B gains +0.071 and +0.045; 7B GRPO gains +0.040
      (step 150) and +0.019.
-   - The one run with no gain had nothing to learn from: no base sample above Dwarf on the training
-     pool.
+   - Two runs gained nothing measurable, and both had nothing cheap left to learn:
+     - expert iteration with the primer: no base sample above Dwarf on the training pool;
+     - GRPO 7B with Dwarf variants at 0 in training (+0.0016, CI -0.006 to +0.010). Its warriors
+       work (59 of 65 valid; raw hill score 0.014 → 0.045) but stay below Dwarf, so they earn 0.
+       With the example ruled out, 150 steps teach the 7B model nothing that beats it.
 2. **The optimiser takes the cheapest pattern within reach, whatever the method.**
 
    | cheapest pattern | method | how much of the reward it makes |
@@ -127,6 +130,7 @@ These rows will be replaced by hidden-hill results as the runs finish.
 
 ## Update log
 
+- 15 Nov 07:28 EET: counts made consistent with the gate-example run (19 of 20 runs gain).
 - 15 Nov 07:25 EET: GRPO 7B with Dwarf variants at 0 in training: no significant gain on the hidden hill (+0.0016, CI -0.006 to +0.010).
 
 - 15 Nov 07:05 EET: run count 18 → 19 (GRPO 14B also gains outside the noise).
