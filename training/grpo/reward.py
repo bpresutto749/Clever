@@ -11,8 +11,9 @@ iteration converged on it (TRAINING.md, route 1). Counted in wins, the imp is wo
 the documentation's Dwarf 0.197. GRPO_TIE_WEIGHT gives ties a weight between 0 (default) and
 1 (the environment's points) if a run wants it.
 
-A sample earns 0 when it does not assemble or when the gate calls it a copy: the verifier's
-gate (published, hill and sparring warriors) plus the short-warrior rule of common.py.
+A sample earns 0 when it does not assemble or when the verifier's gate calls it a copy of a
+published, hill or sparring warrior (arena/core.py, including a short published warrior
+followed by dead code).
 
 usage (check a file of samples):  python3 reward.py samples.jsonl [--workers 8]
 """
@@ -31,7 +32,7 @@ if "common" not in sys.modules:
     _spec = importlib.util.spec_from_file_location("common", Path(__file__).resolve().parent.parent / "common.py")
     sys.modules["common"] = importlib.util.module_from_spec(_spec)
     _spec.loader.exec_module(sys.modules["common"])
-from common import CORPUS, GATE_DIRS, TRAIN_HILL, core, extract, short_copy  # noqa: E402
+from common import CORPUS, GATE_DIRS, TRAIN_HILL, core, extract  # noqa: E402
 
 ROUNDS = int(os.environ.get("GRPO_ROUNDS", "50"))
 TIE_WEIGHT = float(os.environ.get("GRPO_TIE_WEIGHT", "0"))
@@ -67,10 +68,6 @@ def score(src, rounds=ROUNDS, tie_weight=TIE_WEIGHT):
         if g["copy"]:
             out["copy"] = g["warrior"]
             return out
-    s = short_copy(ins)
-    if s:
-        out["copy"] = s
-        return out
     # GRPO_GATE_EXAMPLE=1: a variant of the prompt's example (the Dwarf with other constants, or
     # anything built around its loop) earns 0 in training, so retuning the example does not pay.
     shape = dwarf_shape(ins)
