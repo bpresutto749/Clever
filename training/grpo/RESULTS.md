@@ -62,9 +62,11 @@ adds retuned Dwarfs on top of it, which make up 90% of the main run's reward.
 | model | steps | hidden hill: mean reward, base → trained (95% CI of the gain) | reward > 0 | valid (of 65) | share of the reward from Dwarf shapes, trained |
 |---|---|---|---|---|---|
 | Qwen2.5-Coder-3B-Instruct | 150 | 0.0118 → **0.0837** (+0.051 to +0.092) | 9% → 69% | 32 → 63 | **100%** (81% the Dwarf with other constants, 19% its loop) |
+| Qwen2.5-Coder-14B-Instruct (H200) | 100 | 0.0062 → **0.0218** (+0.001 to +0.030) | 11% → 23% | 44 → 61 | **57%** (all of it the Dwarf with other constants); 43% from its own designs |
 
-The smallest model gains the most, and all of its gain is retuned Dwarfs: it collapses onto
-the example more completely than the 7B (91%).
+The smaller the model, the more completely it collapses onto the example: 100% of the reward
+from Dwarf shapes at 3B, 91% at 7B, 57% at 14B. The 14B model gains less in 100 steps, but
+nearly half of what it gains comes from designs of its own.
 
 ## Prompt choice (`probe.py`, base model, 60 samples each)
 

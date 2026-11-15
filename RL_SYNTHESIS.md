@@ -26,6 +26,7 @@ The hidden hill is never used for training, and is read on fresh samples after t
 | same | expert iteration, 32B, 7 rounds (2 seeds) | 0.011–0.015 → **0.059–0.082** | 0.30–0.33 |
 | its own designs, small | GRPO, 7B, no warrior in the prompt | 0.000 → 0.004 | 0.06 |
 | **the example warrior it was shown**, retuned | GRPO, 3B / 7B, Dwarf in the prompt | 0.003–0.012 → 0.023–0.084 | 0.19 (7B) |
+| the example retuned (57%) and its own designs (43%) | GRPO, 14B, Dwarf in the prompt | 0.006 → 0.022 | 0.19 |
 | same | expert iteration, 7B, five examples in the prompt | 0.000–0.006 → 0.138–0.151 | 0.19–0.26 |
 | **Dwarf with constants found by a script** | expert iteration + scripted constant search, 7B | 0.001–0.005 → 0.137–0.206 | 0.27 |
 | *for comparison:* frontier agents (Claude Opus 5.5, shipped task) | | **0.713** | 0.741 |
@@ -78,8 +79,10 @@ The hidden hill is never used for training, and is read on fresh samples after t
      score lower than first drafts, before and after training. The 32B gain is higher (0.070
      against 0.044 at equal rounds), but because the best of three drafts is kept.
    - *GRPO with the `spar` tool:* the 7B model never made a tool call. A quarter of its replies
-     wrote a well-formed call inside a markdown block. The two-turn variant runs end to end, but
-     its first optimiser step fails inside TRL (`training/grpo/README.md`).
+     wrote a well-formed call inside a markdown block. Qwen3-8B does call it (59% of samples at
+     the first step). Two agentic GRPO runs are in progress: the 7B model in two turns (draft,
+     `spar` report sent by the environment, final warrior), and Qwen3-8B calling `spar` itself
+     (`training/grpo/agent.py`).
 
    This matches FAILURES.md: the hard part is design, not tuning or access to information.
 6. **Training found a hole in the copy gate.**
@@ -112,15 +115,18 @@ The hidden hill is never used for training, and is read on fresh samples after t
 
 | run | where | state | training signal so far (not the hidden hill) |
 |---|---|---|---|
-| GRPO Qwen2.5-Coder-14B, 100 steps | Modal | step ~88 | samples that win a round: 58% → 80% |
 | GRPO Gemma 4 12B, 100 steps | Modal | step ~63 | 64% → 72% |
-| GRPO Qwen3-8B, 150 steps | Modal | step ~29 | 82% → 84% |
+| GRPO Qwen3-8B, 100 steps | Modal | step ~50 | 82% → 89% |
+| agentic GRPO, 7B, two turns (draft, spar report, final), 80 steps | Modal | step ~40 | 30% → 59% |
+| agentic GRPO, Qwen3-8B calling `spar` itself, 30 steps | Modal | running | |
 | GRPO 7B, Dwarf variants earn 0 in training (`--gate-example`), 150 steps | Modal | step ~106 | 29% → 70%: the model finds winning designs other than the Dwarf |
 | expert iteration 7B, seed B | cluster | evaluation running | |
 
 These rows will be replaced by hidden-hill results as the runs finish.
 
 ## Update log
+
+- 15 Nov 07:00 EET: GRPO 14B result; agentic GRPO runs (two-turn 7B, Qwen3-8B with tool calls) running.
 
 - 15 Nov 06:45 EET: first version (cluster runs from `training/CLUSTER_RUNS.md`, GRPO results up
   to commit 9e0b152).
