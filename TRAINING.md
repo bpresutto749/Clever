@@ -130,9 +130,11 @@ environment as a training signal (Route 1).
 ## Route 3: reinforcement learning with GRPO (`training/grpo/`)
 
 First runs on 15 November 2026: results in `training/grpo/RESULTS.md` (updated as runs finish),
-method in `training/grpo/README.md`. Main run so far: on the hidden hill, the mean reward of
-Qwen2.5-Coder-7B goes from 0.0034 to 0.0431 after 150 steps (95% CI of the gain +0.023 to
-+0.057), but 90% of that reward comes from variants of the Dwarf shown in the prompt. The score of every
+method in `training/grpo/README.md`. Main run: on the hidden hill, the mean reward of
+Qwen2.5-Coder-7B goes from 0.0034 to 0.0525 after 200 steps (95% CI of the gain +0.030 to
++0.068), but 91% of that reward comes from variants of the Dwarf shown in the prompt. A
+replicate (another seed) gains less but significantly (0.023 at step 150), and a control without
+the Dwarf in the prompt gains 0.004, none of it from Dwarf shapes. The score of every
 sample is the gradient (GRPO, Qwen2.5-Coder-7B-Instruct + LoRA, on a Modal H100), instead of
 choosing which samples to imitate. The training reward counts rounds won on the training pool,
 so the imp, which ties without killing, is worth 0.022 instead of 0.215. The evaluation is

@@ -94,6 +94,7 @@ code, bidding agents, code under fuzzing.
 | CodeClash ladder warriors, July 2026 (Opus 4.8 / GPT-5.5 / Sonnet 5 / Gemini 3.5 Flash) | — | 0.083–0.332 | 0.000–0.543 |
 | Best trivial warrior (5-line stone); one-line imp | — | 0.228; 0.165 | 0.237; 0.052 |
 | Qwen2.5-Coder-7B-Instruct after 4 rounds of expert iteration on the environment (base model: 0.000), 64 samples | — | 0.124 mean | 0.032 mean (best 0.060) |
+| Qwen2.5-Coder-7B-Instruct after 200 GRPO steps on the environment (base model: 0.003), 65 samples; 91% of this reward comes from variants of the Dwarf shown in the prompt (training/grpo/RESULTS.md) | — | 0.120 mean | 0.053 mean (best 0.194) |
 | Dwarf (the documentation's example; a published warrior, so as a submission the copy gate gives 0) | — | 0.147 | 0.000 |
 | Do-nothing | — | 0.000 | 0.000 |
 

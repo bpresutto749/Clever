@@ -10,29 +10,30 @@ Prompt: the MLX run's, plus the documentation's Dwarf as a syntax example. Train
 the share of rounds won on the training pool. Sampling: temperature 0.8, top_p 0.95.
 Configuration and reports: `results/qwen7b-grpo/`.
 
-| | base | step 50 | step 100 | step 150 |
-|---|---|---|---|---|
-| mean reward on the hidden hill | 0.0034 | 0.0074 | 0.0257 | **0.0431** |
-| gain, 95% CI (Welch) | | -0.006 to +0.014 | +0.008 to +0.037 | **+0.023 to +0.057** |
-| samples with reward > 0 | 3% | 6% | 25% | **38%** |
-| mean raw hill score (0 below Dwarf is not applied) | 0.014 | 0.043 | 0.078 | **0.110** |
-| valid samples (of 65) | 39-43 | 49 | 57 | **60** |
-| best sample | 0.177 | 0.177 | 0.177 | 0.177 |
+| | base | step 50 | step 100 | step 150 | **step 200 (final)** |
+|---|---|---|---|---|---|
+| mean reward on the hidden hill | 0.0034 | 0.0074 | 0.0257 | 0.0431 | **0.0525** |
+| gain, 95% CI (Welch) | | -0.006 to +0.014 | +0.008 to +0.037 | +0.023 to +0.057 | **+0.030 to +0.068** |
+| samples with reward > 0 | 3% | 6% | 25% | 38% | **46%** |
+| mean raw hill score (0 below Dwarf is not applied) | 0.014 | 0.043 | 0.078 | 0.110 | **0.120** |
+| valid samples (of 65) | 39-43 | 49 | 57 | 60 | **60** |
+| best sample | 0.177 | 0.177 | 0.177 | 0.177 | **0.194** |
 
 (The base model is resampled at each evaluation with the same seed; its numbers vary slightly
 between evaluations because vLLM batches differently.)
 
-**Where the reward comes from.** The best sample at every step is the documentation's Dwarf
-with its step changed from 4 to 3364, a constant that appears in the prompt's syntax notes. It
-scores 0.177. Split by structure, at step 150:
+**Where the reward comes from.** Up to step 150, the best sample is the documentation's Dwarf
+with its step changed from 4 to 3364, a constant that appears in the prompt's syntax notes
+(0.177). The final model's best (0.194) is the same loop followed by an imp block that never
+runs. Split by structure:
 
-| structure of the samples with reward > 0 | samples | share of the reward |
+| structure of the samples with reward > 0 | step 150: samples, share of the reward | step 200: samples, share |
 |---|---|---|
-| the Dwarf with other constants | 12 | 63% |
-| contains the Dwarf's loop (often followed by code that never runs) | 7 | 27% |
-| other | 6 | 10% |
+| the Dwarf with other constants | 12, 63% | 18, 74% |
+| contains the Dwarf's loop (often followed by code that never runs) | 7, 27% | 6, 17% |
+| other | 6, 10% | 6, 9% |
 
-Without the Dwarf shapes, the mean reward goes from 0.0007 (base) to 0.0045. GRPO amplified
+Without the Dwarf shapes, the mean reward goes from 0.0007 (base) to 0.0045 at step 150. GRPO amplified
 the strongest pattern within the model's reach, which here is retuning the example it was
 shown. That is the same mechanism as the imp in route 1 and the example stone in Alexandre's
 expert iteration.
@@ -42,10 +43,12 @@ expert iteration.
 | run | change | training: share of samples that win a round, start → end | hidden hill |
 |---|---|---|---|
 | main | none | 31% → 75% (step 150) | above |
-| seed 1 | another seed | 34% → 67% (step 100) | evaluation pending |
+| seed 1 | another seed | 34% → 73% | 0.0034 → **0.0228** (95% CI of the gain +0.005 to +0.034); reward > 0: 3% → 23%; raw hill score 0.014 → 0.087; 74% of the reward from Dwarf shapes |
 | no Dwarf | the prompt has no warrior code | 2-13% → 33% | 0.0000 → **0.0040** (95% CI of the gain +0.001 to +0.007); reward > 0: 0% → 11%; raw hill score 0.001 → 0.033; valid 26 → 42 of 65 |
 
-The replicate follows the main run step for step. Without the Dwarf, learning starts from far
+The replicate follows the main run step for step in training; on the hidden hill its gain at
+step 150 is half the main run's (0.023 against 0.043), in the same direction and also outside
+the noise. Without the Dwarf, learning starts from far
 fewer winning samples and stays slow.
 
 **The control separates the two effects.** All 7 control samples with reward > 0 are other
