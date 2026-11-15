@@ -122,6 +122,12 @@ def make_two_turn_rollout(tok, args):
         reports = list(_POOL.map(spar_report, drafts, chunksize=1))
         p_ids, c_ids, lps, masks, finals, firsts = [], [], [], [], [], []
         second_inputs, envs = [], []
+        eos = set(tok.convert_tokens_to_ids(["<|im_end|>", "<|endoftext|>"]))
+        for i in range(len(first)):                                       # the draft's own end-of-turn is replaced below
+            ids1, lp1, t1 = first[i]
+            while ids1 and ids1[-1] in eos:
+                ids1, lp1 = ids1[:-1], lp1[:-1]
+            first[i] = (ids1, lp1, t1)
         for i, ((ids1, lp1, t1), rep) in enumerate(zip(first, reports)):
             base = prompt_ids[i // n]
             closed = ids1 if t1.rstrip().endswith("```") else ids1 + tok("\n```", add_special_tokens=False)["input_ids"]
@@ -159,6 +165,7 @@ def main():
     ap.add_argument("--mode", default="two_turn", choices=["two_turn", "tools"],
                     help="two_turn: draft, spar report, final (default); tools: the model calls spar itself")
     ap.add_argument("--turn-tokens", type=int, default=768)
+    ap.add_argument("--debug", action="store_true", help="CUDA_LAUNCH_BLOCKING=1")
     ap.add_argument("--prompt-style", default="mlx_dwarf", choices=["mlx", "mlx_dwarf"])
     ap.add_argument("--temperature", type=float, default=0.8)
     ap.add_argument("--top-p", type=float, default=0.95)
@@ -175,6 +182,8 @@ def main():
     scorer.warm()
     _POOL = scorer.pool
 
+    if a.debug:
+        os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
     for k, v in {"RANK": "0", "LOCAL_RANK": "0", "WORLD_SIZE": "1", "MASTER_ADDR": "127.0.0.1", "MASTER_PORT": "29512"}.items():
         os.environ.setdefault(k, v)
     import torch
@@ -222,7 +231,11 @@ def main():
         per_device_train_batch_size=a.micro_batch, gradient_accumulation_steps=batch // a.micro_batch,
         num_generations=a.num_generations, max_completion_length=a.max_completion,
         max_tool_calling_iterations=a.max_tool_calls if a.mode == "tools" else None,
-        temperature=a.temperature, top_p=a.top_p, top_k=a.top_k, beta=0.0,
+        # two_turn samples with its own SamplingParams (make_two_turn_rollout); TRL's importance-sampling
+        # correction expects its own candidate sets, so it is off in that mode.
+        **({"temperature": a.temperature, "top_p": a.top_p, "top_k": a.top_k} if a.mode == "tools"
+           else {"temperature": a.temperature, "vllm_importance_sampling_correction": False}),
+        beta=0.0,
         use_vllm=True, vllm_mode="colocate", vllm_gpu_memory_utilization=a.vllm_memory, vllm_max_model_length=6144,
         bf16=True, gradient_checkpointing=True, logging_steps=1, save_steps=a.save_steps, report_to="none", seed=a.seed,
     )
