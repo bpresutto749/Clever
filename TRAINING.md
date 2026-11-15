@@ -127,6 +127,22 @@ persist.
 Prompting changes the agents' process, not their result. That is the case for using the
 environment as a training signal (Route 1).
 
+## Route 3: reinforcement learning with GRPO (`training/grpo/`)
+
+Set up on 15 November 2026, not yet run: see `training/grpo/README.md`. The score of every
+sample is the gradient (GRPO, Qwen2.5-Coder-7B-Instruct + LoRA, on a Modal H100), instead of
+choosing which samples to imitate. The training reward counts rounds won on the training pool,
+so the imp, which ties without killing, is worth 0.022 instead of 0.215. The evaluation is
+unchanged: the environment's reward on the hidden hill, once, base against trained.
+
+**A gate rule added for training only (15 November 2026).** The verifier's containment test
+needs 6+ instructions, so a published warrior of 3 to 5 instructions followed by dead code
+passes the gate: Gymnosperm Trickery plus 3 `dat` lines earns 0.577 at 500 rounds. Every
+training scorer (`training/common.py`, `training/mlx/score.py`, `training/grpo/reward.py`) now
+treats such a sample as a copy. No agent warrior in `runs/` (94 distinct) and no published
+warrior against another (564) is flagged by it. The results above were scored before this
+rule; the verifier does not apply it yet.
+
 ## What a trained agent should learn here
 
 The environment exposes the failure modes directly, so a training run can target them:

@@ -7,7 +7,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import CORPUS, EVAL_HILL, GATE_DIRS, TRAIN_HILL, core, reward  # noqa: E402
+from common import CORPUS, EVAL_HILL, GATE_DIRS, TRAIN_HILL, core, reward, short_copy  # noqa: E402
 
 
 def score_one(args):
@@ -16,7 +16,8 @@ def score_one(args):
     out = {"valid": bool(ins), "copy": False, "score": 0.0, "wins": 0, "ties": 0, "losses": 0, "len": len(ins)}
     if not ins:
         return out
-    if core.nearest_published(ins, GATE_DIRS)["copy"] or core.nearest_published(ins, CORPUS)["copy"]:
+    if (core.nearest_published(ins, GATE_DIRS)["copy"] or core.nearest_published(ins, CORPUS)["copy"]
+            or short_copy(ins)):                # short published warrior + dead code (common.py)
         out["copy"] = True                      # never rewarded, as in the verifier
         return out
     res = core.play_hill(src, [Path(h) for h in hill], rounds, workers=1)

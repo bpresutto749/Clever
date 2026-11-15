@@ -1,4 +1,5 @@
-"""Shared helpers for the small-model training loop (expert iteration)."""
+"""Shared helpers for the small-model training loops (expert iteration, GRPO)."""
+import difflib
 import json
 import re
 import sys
@@ -42,6 +43,44 @@ def extract(text):
     return src.strip() + "\n"
 
 
+# Short published warriors. The copy gate's containment test needs 6+ instructions, so a
+# published warrior of 3 to 5 instructions followed by dead code passes it: Gymnosperm
+# Trickery (5 instructions) + 3 `dat #1, #1` lines earns reward 0.577 at 500 rounds. Training
+# never rewards that: a published warrior of SHORT_MIN to 5 instructions found inside a longer
+# sample, at >= core.COPY_EXACT of its instructions (constants included, order kept), makes the
+# sample a copy. Checked for false positives (15 November 2026): 0 of 94 distinct agent warriors
+# (runs/ and the tune set), 0 of 564 distinct published warriors against each other. One- and
+# two-instruction warriors (the imp line, `jmp 0`) are left out: they are parts of countless
+# original warriors, and the best of them is worth about 0.10 in reward.
+# The verifier does not apply this rule yet (arena/core.py is unchanged).
+SHORT_MIN = 3
+_SHORT = None
+
+
+def _short_published():
+    global _SHORT
+    if _SHORT is None:
+        seen, _SHORT = set(), []
+        for d in CORPUS + GATE_DIRS:
+            for f in sorted(Path(d).rglob("*.red")):
+                ins = core._strip(core.assemble(f.read_text(errors="replace"))[0])
+                if SHORT_MIN <= len(ins) < 6 and tuple(ins) not in seen:
+                    seen.add(tuple(ins))
+                    _SHORT.append((f.stem, ins))
+    return _SHORT
+
+
+def short_copy(ins):
+    """Name of the short published warrior contained in `ins`, or None."""
+    a = core._strip(ins)
+    for name, b in _short_published():
+        if len(a) > len(b):
+            sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
+            if sum(bl.size for bl in sm.get_matching_blocks()) / len(b) >= core.COPY_EXACT:
+                return name
+    return None
+
+
 def _score_one(args):
     src, hill, rounds = args
     ins, _ = core.assemble(src)
@@ -49,7 +88,7 @@ def _score_one(args):
         return {"valid": False, "copy": False, "score": 0.0, "len": 0, "published_sim": 0.0}
     gate = core.nearest_published(ins, GATE_DIRS)
     pub = core.nearest_published(ins, CORPUS)
-    if gate["copy"] or pub["copy"]:
+    if gate["copy"] or pub["copy"] or short_copy(ins):
         # training never rewards published warriors, even ones the eval gate would allow
         return {"valid": True, "copy": True, "score": 0.0, "len": len(ins), "published_sim": max(pub["exact"], pub["struct"])}
     s = core.hill_score(core.play_hill(src, [Path(h) for h in hill], rounds, workers=1))
