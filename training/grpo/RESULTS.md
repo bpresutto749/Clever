@@ -57,6 +57,15 @@ Dwarf shapes is 0.0045 at step 150, about the control's 0.0040. With or without 
 GRPO teaches the 7B model a small, real gain on designs of its own; the example in the prompt
 adds retuned Dwarfs on top of it, which make up 90% of the main run's reward.
 
+## Other models (same prompt, reward and sampling)
+
+| model | steps | hidden hill: mean reward, base → trained (95% CI of the gain) | reward > 0 | valid (of 65) | share of the reward from Dwarf shapes, trained |
+|---|---|---|---|---|---|
+| Qwen2.5-Coder-3B-Instruct | 150 | 0.0118 → **0.0837** (+0.051 to +0.092) | 9% → 69% | 32 → 63 | **100%** (81% the Dwarf with other constants, 19% its loop) |
+
+The smallest model gains the most, and all of its gain is retuned Dwarfs: it collapses onto
+the example more completely than the 7B (91%).
+
 ## Prompt choice (`probe.py`, base model, 60 samples each)
 
 | prompt | sampling | valid | won a round |
