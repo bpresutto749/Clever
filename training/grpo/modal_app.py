@@ -18,7 +18,9 @@ from pathlib import Path
 
 import modal
 
-ROOT = Path(__file__).resolve().parents[2]
+# The repository root on this machine; inside the container this file is /root/modal_app.py
+# and the repository is mounted at /repo.
+ROOT = Path(__file__).resolve().parents[2] if modal.is_local() else Path("/repo")
 MODEL = "Qwen/Qwen2.5-Coder-7B-Instruct"
 
 image = (
