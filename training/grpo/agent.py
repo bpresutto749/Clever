@@ -238,6 +238,8 @@ def main():
         beta=0.0,
         use_vllm=True, vllm_mode="colocate", vllm_gpu_memory_utilization=a.vllm_memory, vllm_max_model_length=6144,
         bf16=True, gradient_checkpointing=True, logging_steps=1, save_steps=a.save_steps, report_to="none", seed=a.seed,
+        # Qwen3 thinks before answering unless told not to (tools mode renders the chat template in TRL)
+        chat_template_kwargs={"enable_thinking": False} if "qwen3" in a.model.lower() else None,
     )
     peft = LoraConfig(r=a.lora_r, lora_alpha=2 * a.lora_r, lora_dropout=0.05, target_modules="all-linear", task_type="CAUSAL_LM")
     (out / "config.json").write_text(json.dumps({
