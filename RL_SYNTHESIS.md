@@ -108,8 +108,8 @@ The hidden hill is never used for training, and is read on fresh samples after t
   the 30 warriors `spar` shows; it did not carry over to the hidden hill.
 - **GRPO 7B with Dwarf variants at 0 in training:** 0.0034 → 0.0050 (95% CI -0.006 to +0.010):
   not significant.
-- **Qwen3-8B, single answer, 100 steps:** 0.0228 → 0.0423 (95% CI -0.003 to +0.042): not significant; the base model starts higher than the others, and 96% of the trained model's reward comes from Dwarf shapes. **Qwen3-8B calling `spar` itself:**
-  running; the share of samples using the tool rose from 59% to 95% by step 10.
+- **Qwen3-8B, single answer, 100 steps:** 0.0228 → 0.0423 (95% CI -0.003 to +0.042): not significant; the base model starts higher than the others, and 96% of the trained model's reward comes from Dwarf shapes. **Qwen3-8B calling `spar` itself (30 steps):**
+  tool use 58% → 100% of samples, valid final warriors 27 → 57 of 64, training reward 0.022 → 0.070; not evaluated on the hidden hill.
 
 Read together: wherever the cheap pattern is taken away (no example, Dwarf variants at 0) or
 feedback is added (two turns), the hidden-hill gain is small or not significant. The models
@@ -148,6 +148,8 @@ warriors that beat Dwarf.
 These rows will be replaced by hidden-hill results as the runs finish.
 
 ## Update log
+
+- 15 Nov 08:50 EET: Qwen3-8B tools-mode run finished (training curves).
 
 - 15 Nov 07:55 EET: Gemma 4, two-turn agentic GRPO and gated 7B results (none significant).
 

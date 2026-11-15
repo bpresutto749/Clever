@@ -1,0 +1,31 @@
+{
+ "model": "Qwen/Qwen3-8B",
+ "out": "/out/qwen3-8b-tools",
+ "max_steps": 30,
+ "prompts_per_step": 8,
+ "num_generations": 8,
+ "micro_batch": 4,
+ "lr": 1e-05,
+ "lora_r": 16,
+ "max_completion": 3584,
+ "max_tool_calls": 3,
+ "mode": "tools",
+ "turn_tokens": 768,
+ "debug": false,
+ "prompt_style": "mlx_dwarf",
+ "temperature": 0.8,
+ "top_p": 0.95,
+ "top_k": 512,
+ "save_steps": 10,
+ "vllm_memory": 0.35,
+ "workers": 16,
+ "seed": 0,
+ "samples_per_step": 64,
+ "spar_rounds": 20,
+ "agentic": true,
+ "versions": {
+  "trl": "1.17.1",
+  "transformers": "5.17.0",
+  "torch": "2.13.0+cu130"
+ }
+}

@@ -106,8 +106,20 @@ and sends the report, and the model writes its final warrior, which is rewarded.
   to the hidden hill. That looks like the visible-set overfitting of FAILURES.md, but 64
   evaluation samples are too few to say more.
 
-Qwen3-8B calling `spar` itself (tools mode, 30 steps) is still running. The share of its samples
-that call the tool went from 59% (first step) to 95% (step 10).
+**Qwen3-8B calling `spar` itself** (tools mode, up to 3 calls, 30 steps; training curves only, no
+hidden-hill evaluation for this mode):
+
+| | step 1 | step 30 |
+|---|---|---|
+| samples that call the tool | 58% | 100% |
+| tool calls per sample | 1.7 | 2.95 |
+| valid final warriors (of 64) | 27 | 57 |
+| final warriors that win a round on the training pool | 20% | 63% |
+| mean training reward | 0.022 | 0.070 |
+| copies (mostly the Dwarf itself) | 14 | 15 |
+
+The model learned to use the tool every time, and to end with a valid warrior. Whether that
+transfers to the hidden hill was not measured.
 
 ## Prompt choice (`probe.py`, base model, 60 samples each)
 
