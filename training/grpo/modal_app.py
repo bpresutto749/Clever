@@ -79,6 +79,16 @@ def smoke(model: str = MODEL):
           "--workers", "16"])
 
 
+@app.function(timeout=8 * 3600, **GPU)
+def train_agent(run: str = "qwen7b-agent", model: str = MODEL, max_steps: int = 100, extra: str = ""):
+    """Multi-turn GRPO with the `spar` practice tool (agent.py)."""
+    import shutil
+    if max_steps <= 2:
+        shutil.rmtree(f"/out/{run}", ignore_errors=True)      # a smoke run starts from scratch
+    _run(["python", "agent.py", "--model", model, "--out", f"/out/{run}", "--max-steps", str(max_steps),
+          "--workers", "16", *extra.split()])
+
+
 @app.function(timeout=3600, **GPU)
 def probe(n: int = 64, styles: str = "mlx,mlx_dwarf,route1", sampling: str = "1.0:1.0,0.8:0.95", model: str = MODEL):
     """Base model only: share of valid and winning samples per prompt and sampling setting."""
