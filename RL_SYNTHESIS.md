@@ -36,7 +36,7 @@ The hidden hill is never used for training, and is read on fresh samples after t
 `video/explainer.py`, which shows only the first 7B run: 0.000 → 0.032):
 
 > **Small AIs learn from the game, then hit a wall.**
-> 18 training runs, two methods (expert iteration, reinforcement learning), models from 3B to 32B.
+> 19 training runs, two methods (expert iteration, reinforcement learning), models from 3B to 32B.
 > Every run improves, outside the noise. Each one learns the cheapest trick within its reach:
 > - a one-line trick (0.03);
 > - its own small programs (up to 0.08);
@@ -47,7 +47,7 @@ The hidden hill is never used for training, and is read on fresh samples after t
 ## What both efforts found, independently
 
 1. **The reward can be climbed, from zero, and the gain replicates.**
-   - All 18 runs evaluated on the hidden hill gain, with a 95% interval above zero.
+   - All 19 runs evaluated on the hidden hill gain, with a 95% interval above zero.
    - A second seed confirms the gain at 7B (GRPO) and at 14B and 32B (expert iteration).
    - The size of the gain varies between seeds: 32B gains +0.071 and +0.045; 7B GRPO gains +0.040
      (step 150) and +0.019.
@@ -108,7 +108,8 @@ The hidden hill is never used for training, and is read on fresh samples after t
   - Every other run was read once.
 - **The runs with example warriors or a scripted search reproduce what they were given.** Their
   numbers are not evidence of design. The only evidence of design by the model is the 14B/32B
-  bombers and the GRPO no-Dwarf control, and it is small: 0.004 to 0.082.
+  bombers, the GRPO no-Dwarf control and the 43% of the GRPO 14B reward that is not Dwarf
+  shapes, and it is small: 0.004 to 0.082.
 - **Every final sample file was opened** before the samples were described above.
 
 ## Still running (as of 06:40 EET, 15 November)
@@ -126,6 +127,7 @@ These rows will be replaced by hidden-hill results as the runs finish.
 
 ## Update log
 
+- 15 Nov 07:05 EET: run count 18 → 19 (GRPO 14B also gains outside the noise).
 - 15 Nov 07:00 EET: GRPO 14B result; agentic GRPO runs (two-turn 7B, Qwen3-8B with tool calls) running.
 
 - 15 Nov 06:45 EET: first version (cluster runs from `training/CLUSTER_RUNS.md`, GRPO results up
